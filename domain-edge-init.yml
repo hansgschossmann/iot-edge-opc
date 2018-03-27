@@ -1,0 +1,24 @@
+version: '2'
+
+volumes:
+    cfx509certstores:
+        external:
+            name: ${DOMAIN}_cfx509certstores
+    cfappdata:
+        external:
+            name: ${DOMAIN}_cfappdata
+
+services:
+    proxy:
+        image: ${OPCPROXY_CONTAINER}
+        restart: "no"
+        container_name: proxy-${DOMAIN}
+        hostname: proxy-${DOMAIN}
+        volumes:
+            - "cfx509certstores:/root/.dotnet/corefx/cryptography/x509stores"
+            - "${HOSTDIR}:/docker"
+        command: -w --domain ${DOMAIN} -c "${IOTHUB_CONNECTIONSTRING}" -i -l /docker/${DOMAIN}-proxy.log -D /docker/proxy-${DOMAIN}-cs.db
+
+volumes:
+    cfx509certstores:
+    cfappdata:

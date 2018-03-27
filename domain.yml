@@ -1,0 +1,32 @@
+version: '2'
+
+services:
+    iot-edge-opc-publisher:
+        image: ${OPCPUBLISHER_CONTAINER}
+        restart: always
+        container_name: publisher-${DOMAIN}
+        hostname: publisher-${DOMAIN}
+        extra_hosts:
+            ${EXTRAHOSTS}
+        volumes:
+            - "cfx509certstores:/root/.dotnet/corefx/cryptography/x509stores"
+            - "${HOSTDIR}:/docker"
+        expose:
+            - "62222"
+        command: publisher-${DOMAIN} --pf /docker/publishednodes-${DOMAIN}.json --lf /docker/${DOMAIN}-publisher.log --domain ${DOMAIN} --di=60 --tp /docker/trusted --rp /docker/rejected --ip /docker/trusted --to
+           
+    iot-edge-opc-proxy:
+        image: ${OPCPROXY_CONTAINER}
+        restart: always
+        container_name: proxy-${DOMAIN}
+        hostname: proxy-${DOMAIN}
+        extra_hosts:
+            ${EXTRAHOSTS}
+        volumes:
+            - "cfx509certstores:/root/.dotnet/corefx/cryptography/x509stores"
+            - "${HOSTDIR}:/docker"
+        command: -w --domain ${DOMAIN} -l /docker/${DOMAIN}-proxy.log -D /docker/proxy-${DOMAIN}-cs.db
+
+volumes:
+    cfx509certstores:
+    cfappdata:

@@ -1,0 +1,61 @@
+version: '2'
+
+networks:
+    default:
+        external:
+            name: ${DOMAIN_NETWORK}
+
+volumes:
+    cfx509certstores:
+        external:
+            name: ${DOMAIN}_cfx509certstores
+    cfappdata:
+        external:
+            name: ${DOMAIN}_cfappdata
+
+services:
+    mes:
+        image: ${CFMES_CONTAINER}
+        restart: always
+        container_name: ${MES_HOSTNAME}
+        hostname: ${MES_HOSTNAME}
+        volumes:
+            - "cfx509certstores:/root/.dotnet/corefx/cryptography/x509stores"
+            - "${HOSTDIR}:/docker"
+        command: --lf /docker/${DOMAIN}-${PRODUCTIONLINE}-mes.log --as ${ASSEMBLY_ENDPOINT} --ts ${TEST_ENDPOINT} --ps ${PACKAGING_ENDPOINT} --tp /docker/trusted --rp /docker/rejected --ip /docker/issuers --to
+
+    assembly:
+        image: ${CFSTATION_CONTAINER}
+        restart: always
+        container_name: ${ASSEMBLY_HOSTNAME}
+        hostname: ${ASSEMBLY_HOSTNAME}
+        volumes:
+            - "cfx509certstores:/root/.dotnet/corefx/cryptography/x509stores"
+            - "${HOSTDIR}:/docker"
+        expose: 
+            - "${ASSEMBLY_PORT}"
+        command: --lf /docker/${DOMAIN}-${PRODUCTIONLINE}-assembly.log --pn ${ASSEMBLY_PORT} ${ASSEMBLY_GENERATEALERTS}  ${ASSEMBLY_CYCLETIME} ${ASSEMBLY_POWERCONSUMPTION} --tp /docker/trusted --rp /docker/rejected --ip /docker/issuers --to
+            
+    test:
+        image: ${CFSTATION_CONTAINER}
+        restart: always
+        container_name: ${TEST_HOSTNAME}
+        hostname: ${TEST_HOSTNAME}
+        volumes:
+            - "cfx509certstores:/root/.dotnet/corefx/cryptography/x509stores"
+            - "${HOSTDIR}:/docker"
+        expose: 
+            - "${TEST_PORT}"
+        command: --lf /docker/${DOMAIN}-${PRODUCTIONLINE}-test.log --pn ${TEST_PORT} ${TEST_GENERATEALERTS}  ${TEST_CYCLETIME} ${TEST_POWERCONSUMPTION} --tp /docker/trusted --rp /docker/rejected --ip /docker/issuers --to
+            
+    packaging:
+        image: ${CFSTATION_CONTAINER}
+        restart: always
+        container_name: ${PACKAGING_HOSTNAME}
+        hostname: ${PACKAGING_HOSTNAME}
+        volumes:
+            - "cfx509certstores:/root/.dotnet/corefx/cryptography/x509stores"
+            - "${HOSTDIR}:/docker"
+        expose: 
+            - "${PACKAGING_PORT}"
+        command: --lf /docker/${DOMAIN}-${PRODUCTIONLINE}-packaging.log --pn ${PACKAGING_PORT} ${PACKAGING_GENERATEALERTS}  ${PACKAGING_CYCLETIME} ${PACKAGING_POWERCONSUMPTION} --tp /docker/trusted --rp /docker/rejected --ip /docker/issuers --to
