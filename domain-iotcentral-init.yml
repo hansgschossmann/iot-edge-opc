@@ -9,16 +9,18 @@ volumes:
             name: ${DOMAIN}_cfappdata
 
 services:
-    proxy:
-        image: ${OPCPROXY_CONTAINER}
+    publisher:
+        image: ${OPCPUBLISHER_CONTAINER}
         restart: "no"
-        container_name: prx-${DOMAIN}
-        hostname: prx-${DOMAIN}
+        container_name: pub-${DOMAIN}
+        hostname: pub-${DOMAIN}
         volumes:
             - "cfx509certstores:/root/.dotnet/corefx/cryptography/x509stores"
             - "${BINDSOURCE}:/d"
-        command: -w --domain ${DOMAIN} -c "${IOTHUB_CONNECTIONSTRING}" -i -l /d/${DOMAIN}-prx.log -D /d/prx-${DOMAIN}-cs.db
-
+        expose:
+            - "62222"
+        command: pub-${DOMAIN} --dc "${IOTCENTRAL_CONNECTIONSTRING}" -i --lf /d/${DOMAIN}-pub.log --domain ${DOMAIN} --di=60 --tp /d/trusted --rp /d/rejected --ip /d/issuer --to --ic
+           
 volumes:
     cfx509certstores:
     cfappdata:

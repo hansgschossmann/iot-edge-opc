@@ -1,3 +1,5 @@
 azure-cli-core==2.0.29
 azure==3.0.0
 PyYAML==3.12
+docker[tls]>3.0
+docker-compose==1.18.0

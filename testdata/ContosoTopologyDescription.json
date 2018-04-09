@@ -1,0 +1,2302 @@
+{
+    "Version": 1,
+    "Image": "world.jpg",
+    "Factories": [
+        {
+            "Domain": "munich",
+            "Name": "Munich",
+            "Description": "Braking system",
+            "Location": {
+                "City": "Munich",
+                "Country": "Germany",
+                "Latitude": 48.13641,
+                "Longitude": 11.57754
+            },
+            "Image": "factory.png",
+            "Shopfloor": {
+                "Type": "Simulation"
+            },
+            "ProductionLines": [
+                {
+                    "Guid": "E8260A1A-DA12-473E-9955-B220B3985356",
+                    "Name": "Production Line 1",
+                    "Description": "Brake pads",
+                    "Image": "factory_floor.gif",
+                    "ImagePushpin": {
+                        "Top": 290,
+                        "Left": 425
+                    },
+                    "Stations": [
+                        {
+                            "Name": "Assembly",
+                            "Description": "Brake pad assembly station",
+                            "Image": "assembly_station.png",
+                            "ImagePushpin": {
+                                "Top": 370,
+                                "Left": 133
+                            },
+                            "OpcApplicationUri": "urn:munich-productionline1-assembly",
+                            "OpcEndpointUrl": "opc.tcp://munich-productionline1-assembly:51210",
+                            "Simulation": {
+                                "Type": "assembly",
+                                "Args": "200 6 yes"
+                            },
+                            "Kpi1": {
+                                "Minimum": 150,
+                                "Target": 300,
+                                "Maximum": 600
+                            },
+                            "Kpi2": {
+                                "Minimum": 50,
+                                "Target": 100,
+                                "Maximum": 200,
+                                "MinimumAlertActions": [
+                                    {
+                                        "Type": "None"
+                                    }
+                                ]
+                            },
+                            "OpcNodes": [
+                                {
+                                    "ExpandedNodeId": "nsu=http://microsoft.com/Opc/CfStation/;s=NumberOfManufacturedProducts",
+                                    "Relevance": [
+                                        "Kpi1",
+                                        "OeeQuality_Good"
+                                    ],
+                                    "OpCode": "SubMaxMin"
+                                },
+                                {
+                                    "ExpandedNodeId": "nsu=http://microsoft.com/Opc/CfStation/;s=NumberOfDiscardedProducts",
+                                    "Relevance": [
+                                        "OeeQuality_Bad"
+                                    ],
+                                    "OpCode": "SubMaxMin"
+                                },
+                                {
+                                    "ExpandedNodeId": "nsu=http://microsoft.com/Opc/CfStation/;s=FaultyTime",
+                                    "Relevance": [
+                                        "OeeAvailability_Fault"
+                                    ],
+                                    "OpCode": "Sum",
+                                    "Units": "ms"
+                                },
+                                {
+                                    "SymbolicName": "RunningTime",
+                                    "Relevance": [
+                                        "OeeAvailability_Running"
+                                    ],
+                                    "OpCode": "Timespan",
+                                    "Visible": false,
+                                    "Units": "ms"
+                                },
+                                {
+                                    "ExpandedNodeId": "nsu=http://microsoft.com/Opc/CfStation/;s=EnergyConsumption",
+                                    "Relevance": [
+                                        "Kpi2"
+                                    ],
+                                    "OpCode": "Sum",
+                                    "Units": "kWh"
+                                },
+                                {
+                                    "ExpandedNodeId": "nsu=http://microsoft.com/Opc/CfStation/;s=Pressure",
+                                    "OpCode": "Avg",
+                                    "Units": "mbar",
+                                    "Maximum": 5000,
+                                    "MaximumAlertActions": [
+                                        {
+                                            "Type": "CallOpcMethod",
+                                            "Description": "Open valve",
+                                            "Parameter": "ns=2;s=435, ns=2;s=424, opc.tcp://scada2194.munich0.corp.contoso:51210/UA/Munich/ProductionLine0/AssemblyStation"
+                                        },
+                                        {
+                                            "Type": "OpenWebPage",
+                                            "Description": "Open schematics",
+                                            "Parameter": "https://aka.ms/azureiot/connectedfactory/schematics"
+                                        }
+                                    ]
+                                },
+                                {
+                                    "ExpandedNodeId": "nsu=http://microsoft.com/Opc/CfStation/;s=ActualCycleTime",
+                                    "Relevance": [
+                                        "OeePerformance_Actual"
+                                    ],
+                                    "OpCode": "Avg",
+                                    "Units": "ms"
+                                },
+                                {
+                                    "ConstValue": 6000,
+                                    "SymbolicName": "IdealCycleTime",
+                                    "OpCode": "Const",
+                                    "Visible": false,
+                                    "Units": "ms",
+                                    "Relevance": [
+                                        "OeePerformance_Ideal"
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "Name": "Test",
+                            "Description": "Brake pad test station",
+                            "Image": "testing_station.png",
+                            "ImagePushpin": {
+                                "Top": 273,
+                                "Left": 303
+                            },
+                            "OpcApplicationUri": "urn:munich-productionline1-test",
+                            "OpcEndpointUrl": "opc.tcp://munich-productionline1-test:51211",
+                            "Simulation": {
+                                "Type": "test",
+                                "Args": "200 6 yes"
+                            },
+                            "Kpi1": {
+                                "Minimum": 150,
+                                "Target": 300,
+                                "Maximum": 600
+                            },
+                            "Kpi2": {
+                                "Minimum": 25,
+                                "Target": 50,
+                                "Maximum": 100
+                            },
+                            "OpcNodes": [
+                                {
+                                    "ExpandedNodeId": "nsu=http://microsoft.com/Opc/CfStation/;s=NumberOfManufacturedProducts",
+                                    "Relevance": [
+                                        "Kpi1",
+                                        "OeeQuality_Good"
+                                    ],
+                                    "OpCode": "SubMaxMin"
+                                },
+                                {
+                                    "ExpandedNodeId": "nsu=http://microsoft.com/Opc/CfStation/;s=NumberOfDiscardedProducts",
+                                    "Relevance": [
+                                        "OeeQuality_Bad"
+                                    ],
+                                    "OpCode": "SubMaxMin"
+                                },
+                                {
+                                    "ExpandedNodeId": "nsu=http://microsoft.com/Opc/CfStation/;s=FaultyTime",
+                                    "Relevance": [
+                                        "OeeAvailability_Fault"
+                                    ],
+                                    "OpCode": "Sum",
+                                    "Units": "ms"
+                                },
+                                {
+                                    "SymbolicName": "RunningTime",
+                                    "Relevance": [
+                                        "OeeAvailability_Running"
+                                    ],
+                                    "OpCode": "Timespan",
+                                    "Visible": false,
+                                    "Units": "ms"
+                                },
+                                {
+                                    "ExpandedNodeId": "nsu=http://microsoft.com/Opc/CfStation/;s=EnergyConsumption",
+                                    "Relevance": [
+                                        "Kpi2"
+                                    ],
+                                    "OpCode": "Sum",
+                                    "Units": "kWh"
+                                },
+                                {
+                                    "ExpandedNodeId": "nsu=http://microsoft.com/Opc/CfStation/;s=ActualCycleTime",
+                                    "Relevance": [
+                                        "OeePerformance_Actual"
+                                    ],
+                                    "OpCode": "Avg",
+                                    "Units": "ms"
+                                },
+                                {
+                                    "ConstValue": 6000,
+                                    "SymbolicName": "IdealCycleTime",
+                                    "OpCode": "Const",
+                                    "Visible": false,
+                                    "Units": "ms",
+                                    "Relevance": [
+                                        "OeePerformance_Ideal"
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "Name": "Packaging",
+                            "Description": "Brake pad packaging station",
+                            "Image": "packing_station.png",
+                            "ImagePushpin": {
+                                "Top": 390,
+                                "Left": 560
+                            },
+                            "OpcApplicationUri": "urn:munich-productionline1-packaging",
+                            "OpcEndpointUrl": "opc.tcp://munich-productionline1-packaging:51212",
+                            "Simulation": {
+                                "Type": "packaging",
+                                "Args": "100 6 no"
+                            },
+                            "Kpi1": {
+                                "Minimum": 150,
+                                "Target": 300,
+                                "Maximum": 600
+                            },
+                            "Kpi2": {
+                                "Minimum": 25,
+                                "Target": 50,
+                                "Maximum": 100
+                            },
+                            "OpcNodes": [
+                                {
+                                    "ExpandedNodeId": "nsu=http://microsoft.com/Opc/CfStation/;s=NumberOfManufacturedProducts",
+                                    "Relevance": [
+                                        "Kpi1",
+                                        "OeeQuality_Good"
+                                    ],
+                                    "OpCode": "SubMaxMin"
+                                },
+                                {
+                                    "ExpandedNodeId": "nsu=http://microsoft.com/Opc/CfStation/;s=NumberOfDiscardedProducts",
+                                    "Relevance": [
+                                        "OeeQuality_Bad"
+                                    ],
+                                    "OpCode": "SubMaxMin"
+                                },
+                                {
+                                    "ExpandedNodeId": "nsu=http://microsoft.com/Opc/CfStation/;s=FaultyTime",
+                                    "Relevance": [
+                                        "OeeAvailability_Fault"
+                                    ],
+                                    "OpCode": "Sum",
+                                    "Units": "ms"
+                                },
+                                {
+                                    "SymbolicName": "RunningTime",
+                                    "Relevance": [
+                                        "OeeAvailability_Running"
+                                    ],
+                                    "OpCode": "Timespan",
+                                    "Visible": false,
+                                    "Units": "ms"
+                                },
+                                {
+                                    "ExpandedNodeId": "nsu=http://microsoft.com/Opc/CfStation/;s=EnergyConsumption",
+                                    "Relevance": [
+                                        "Kpi2"
+                                    ],
+                                    "OpCode": "Sum",
+                                    "Units": "kWh"
+                                },
+                                {
+                                    "ExpandedNodeId": "nsu=http://microsoft.com/Opc/CfStation/;s=ActualCycleTime",
+                                    "Relevance": [
+                                        "OeePerformance_Actual"
+                                    ],
+                                    "OpCode": "Avg",
+                                    "Units": "ms"
+                                },
+                                {
+                                    "ConstValue": 6000,
+                                    "SymbolicName": "IdealCycleTime",
+                                    "OpCode": "Const",
+                                    "Visible": false,
+                                    "Units": "ms",
+                                    "Relevance": [
+                                        "OeePerformance_Ideal"
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "Domain": "capetown",
+            "Name": "Cape Town",
+            "Description": "Fuel supply system",
+            "Location": {
+                "City": "Cape Town",
+                "Country": "South Africa",
+                "Latitude": -33.91909,
+                "Longitude": 18.42199
+            },
+            "Image": "factory.png",
+            "Shopfloor": {
+                "Type": "Simulation"
+            },
+            "ProductionLines": [
+                {
+                    "Guid": "82DEC939-540E-4519-BF7A-93FFD93DF300",
+                    "Name": "Production Line 1",
+                    "Description": "Carburetor",
+                    "Image": "factory_floor.gif",
+                    "ImagePushpin": {
+                        "Top": 290,
+                        "Left": 425
+                    },
+                    "Stations": [
+                        {
+                            "Name": "Assembly",
+                            "Description": "Carburetor assembly station",
+                            "Image": "assembly_station.png",
+                            "ImagePushpin": {
+                                "Top": 370,
+                                "Left": 133
+                            },
+                            "OpcApplicationUri": "urn:capetown-productionline1-assembly",
+                            "OpcEndpointUrl": "opc.tcp://capetown-productionline1-assembly:51210",
+                            "Simulation": {
+                                "Type": "assembly",
+                                "Args": "200 8 yes"
+                            },
+                            "Kpi1": {
+                                "Minimum": 112,
+                                "Target": 225,
+                                "Maximum": 450
+                            },
+                            "Kpi2": {
+                                "Minimum": 50,
+                                "Target": 100,
+                                "Maximum": 200
+                            },
+                            "OpcNodes": [
+                                {
+                                    "ExpandedNodeId": "nsu=http://microsoft.com/Opc/CfStation/;s=NumberOfManufacturedProducts",
+                                    "Relevance": [
+                                        "Kpi1",
+                                        "OeeQuality_Good"
+                                    ],
+                                    "OpCode": "SubMaxMin"
+                                },
+                                {
+                                    "ExpandedNodeId": "nsu=http://microsoft.com/Opc/CfStation/;s=NumberOfDiscardedProducts",
+                                    "Relevance": [
+                                        "OeeQuality_Bad"
+                                    ],
+                                    "OpCode": "SubMaxMin"
+                                },
+                                {
+                                    "ExpandedNodeId": "nsu=http://microsoft.com/Opc/CfStation/;s=FaultyTime",
+                                    "Relevance": [
+                                        "OeeAvailability_Fault"
+                                    ],
+                                    "OpCode": "Sum",
+                                    "Units": "ms"
+                                },
+                                {
+                                    "SymbolicName": "RunningTime",
+                                    "Relevance": [
+                                        "OeeAvailability_Running"
+                                    ],
+                                    "OpCode": "Timespan",
+                                    "Visible": false,
+                                    "Units": "ms"
+                                },
+                                {
+                                    "ExpandedNodeId": "nsu=http://microsoft.com/Opc/CfStation/;s=EnergyConsumption",
+                                    "Relevance": [
+                                        "Kpi2"
+                                    ],
+                                    "OpCode": "Sum",
+                                    "Units": "kWh"
+                                },
+                                {
+                                    "ExpandedNodeId": "nsu=http://microsoft.com/Opc/CfStation/;s=Pressure",
+                                    "OpCode": "Avg",
+                                    "Units": "mbar",
+                                    "Maximum": 4500
+                                },
+                                {
+                                    "ExpandedNodeId": "nsu=http://microsoft.com/Opc/CfStation/;s=ActualCycleTime",
+                                    "Relevance": [
+                                        "OeePerformance_Actual"
+                                    ],
+                                    "OpCode": "Avg",
+                                    "Units": "ms"
+                                },
+                                {
+                                    "ConstValue": 8000,
+                                    "SymbolicName": "IdealCycleTime",
+                                    "OpCode": "Const",
+                                    "Visible": false,
+                                    "Units": "ms",
+                                    "Relevance": [
+                                        "OeePerformance_Ideal"
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "Name": "Test #1",
+                            "Description": "Carburetor test station",
+                            "Image": "testing_station.png",
+                            "ImagePushpin": {
+                                "Top": 273,
+                                "Left": 303
+                            },
+                            "OpcApplicationUri": "urn:capetown-productionline1-test",
+                            "OpcEndpointUrl": "opc.tcp://capetown-productionline1-test:51211",
+                            "Simulation": {
+                                "Type": "test",
+                                "Args": "100 8 no"
+                            },
+                            "Kpi1": {
+                                "Minimum": 112,
+                                "Target": 225,
+                                "Maximum": 450
+                            },
+                            "Kpi2": {
+                                "Minimum": 25,
+                                "Target": 50,
+                                "Maximum": 100
+                            },
+                            "OpcNodes": [
+                                {
+                                    "ExpandedNodeId": "nsu=http://microsoft.com/Opc/CfStation/;s=NumberOfManufacturedProducts",
+                                    "Relevance": [
+                                        "Kpi1",
+                                        "OeeQuality_Good"
+                                    ],
+                                    "OpCode": "SubMaxMin"
+                                },
+                                {
+                                    "ExpandedNodeId": "nsu=http://microsoft.com/Opc/CfStation/;s=NumberOfDiscardedProducts",
+                                    "Relevance": [
+                                        "OeeQuality_Bad"
+                                    ],
+                                    "OpCode": "SubMaxMin"
+                                },
+                                {
+                                    "ExpandedNodeId": "nsu=http://microsoft.com/Opc/CfStation/;s=FaultyTime",
+                                    "Relevance": [
+                                        "OeeAvailability_Fault"
+                                    ],
+                                    "OpCode": "Sum",
+                                    "Units": "ms"
+                                },
+                                {
+                                    "SymbolicName": "RunningTime",
+                                    "Relevance": [
+                                        "OeeAvailability_Running"
+                                    ],
+                                    "OpCode": "Timespan",
+                                    "Visible": false,
+                                    "Units": "ms"
+                                },
+                                {
+                                    "ExpandedNodeId": "nsu=http://microsoft.com/Opc/CfStation/;s=EnergyConsumption",
+                                    "Relevance": [
+                                        "Kpi2"
+                                    ],
+                                    "OpCode": "Sum",
+                                    "Units": "kWh"
+                                },
+                                {
+                                    "ExpandedNodeId": "nsu=http://microsoft.com/Opc/CfStation/;s=ActualCycleTime",
+                                    "Relevance": [
+                                        "OeePerformance_Actual"
+                                    ],
+                                    "OpCode": "Avg",
+                                    "Units": "ms"
+                                },
+                                {
+                                    "ConstValue": 8000,
+                                    "SymbolicName": "IdealCycleTime",
+                                    "OpCode": "Const",
+                                    "Visible": false,
+                                    "Units": "ms",
+                                    "Relevance": [
+                                        "OeePerformance_Ideal"
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "Name": "Packaging #1",
+                            "Description": "Carburetor packaging station",
+                            "Image": "packing_station.png",
+                            "ImagePushpin": {
+                                "Top": 390,
+                                "Left": 560
+                            },
+                            "OpcApplicationUri": "urn:capetown-productionline1-packaging",
+                            "OpcEndpointUrl": "opc.tcp://capetown-productionline1-packaging:51212",
+                            "Simulation": {
+                                "Type": "packaging",
+                                "Args": "100 8 no"
+                            },
+                            "Kpi1": {
+                                "Minimum": 112,
+                                "Target": 225,
+                                "Maximum": 450
+                            },
+                            "Kpi2": {
+                                "Minimum": 25,
+                                "Target": 50,
+                                "Maximum": 100
+                            },
+                            "OpcNodes": [
+                                {
+                                    "ExpandedNodeId": "nsu=http://microsoft.com/Opc/CfStation/;s=NumberOfManufacturedProducts",
+                                    "Relevance": [
+                                        "Kpi1",
+                                        "OeeQuality_Good"
+                                    ],
+                                    "OpCode": "SubMaxMin"
+                                },
+                                {
+                                    "ExpandedNodeId": "nsu=http://microsoft.com/Opc/CfStation/;s=NumberOfDiscardedProducts",
+                                    "Relevance": [
+                                        "OeeQuality_Bad"
+                                    ],
+                                    "OpCode": "SubMaxMin"
+                                },
+                                {
+                                    "ExpandedNodeId": "nsu=http://microsoft.com/Opc/CfStation/;s=FaultyTime",
+                                    "Relevance": [
+                                        "OeeAvailability_Fault"
+                                    ],
+                                    "OpCode": "Sum",
+                                    "Units": "ms"
+                                },
+                                {
+                                    "SymbolicName": "RunningTime",
+                                    "Relevance": [
+                                        "OeeAvailability_Running"
+                                    ],
+                                    "OpCode": "Timespan",
+                                    "Visible": false,
+                                    "Units": "ms"
+                                },
+                                {
+                                    "ExpandedNodeId": "nsu=http://microsoft.com/Opc/CfStation/;s=EnergyConsumption",
+                                    "Relevance": [
+                                        "Kpi2"
+                                    ],
+                                    "OpCode": "Sum",
+                                    "Units": "kWh"
+                                },
+                                {
+                                    "ExpandedNodeId": "nsu=http://microsoft.com/Opc/CfStation/;s=ActualCycleTime",
+                                    "Relevance": [
+                                        "OeePerformance_Actual"
+                                    ],
+                                    "OpCode": "Avg",
+                                    "Units": "ms"
+                                },
+                                {
+                                    "ConstValue": 8000,
+                                    "SymbolicName": "IdealCycleTime",
+                                    "OpCode": "Const",
+                                    "Visible": false,
+                                    "Units": "ms",
+                                    "Relevance": [
+                                        "OeePerformance_Ideal"
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "Domain": "mumbai",
+            "Name": "Mumbai",
+            "Description": "Exhaust system",
+            "Location": {
+                "City": "Mumbai",
+                "Country": "India",
+                "Latitude": 18.93016,
+                "Longitude": 72.83028
+            },
+            "Image": "factory.png",
+            "Shopfloor": {
+                "Type": "Simulation"
+            },
+            "ProductionLines": [
+                {
+                    "Guid": "D1DBB99C-9A08-4B8B-B94A-43A756A64F9D",
+                    "Name": "Production Line 1",
+                    "Description": "Gasket",
+                    "Image": "factory_floor.gif",
+                    "ImagePushpin": {
+                        "Top": 290,
+                        "Left": 425
+                    },
+                    "Stations": [
+                        {
+                            "Name": "Assembly",
+                            "Description": "Gasket assembly station",
+                            "Image": "assembly_station.png",
+                            "ImagePushpin": {
+                                "Top": 370,
+                                "Left": 133
+                            },
+                            "OpcApplicationUri": "urn:mumbai-productionline1-assembly",
+                            "OpcEndpointUrl": "opc.tcp://mumbai-productionline1-assembly:51210",
+                            "Simulation": {
+                                "Type": "assembly",
+                                "Args": "200 11 yes"
+                            },
+                            "Kpi1": {
+                                "Minimum": 81,
+                                "Target": 163,
+                                "Maximum": 327
+                            },
+                            "Kpi2": {
+                                "Minimum": 50,
+                                "Target": 100,
+                                "Maximum": 200
+                            },
+                            "OpcNodes": [
+                                {
+                                    "ExpandedNodeId": "nsu=http://microsoft.com/Opc/CfStation/;s=NumberOfManufacturedProducts",
+                                    "Relevance": [
+                                        "Kpi1",
+                                        "OeeQuality_Good"
+                                    ],
+                                    "OpCode": "SubMaxMin"
+                                },
+                                {
+                                    "ExpandedNodeId": "nsu=http://microsoft.com/Opc/CfStation/;s=NumberOfDiscardedProducts",
+                                    "Relevance": [
+                                        "OeeQuality_Bad"
+                                    ],
+                                    "OpCode": "SubMaxMin"
+                                },
+                                {
+                                    "ExpandedNodeId": "nsu=http://microsoft.com/Opc/CfStation/;s=FaultyTime",
+                                    "Relevance": [
+                                        "OeeAvailability_Fault"
+                                    ],
+                                    "OpCode": "Sum",
+                                    "Units": "ms"
+                                },
+                                {
+                                    "SymbolicName": "RunningTime",
+                                    "Relevance": [
+                                        "OeeAvailability_Running"
+                                    ],
+                                    "OpCode": "Timespan",
+                                    "Visible": false,
+                                    "Units": "ms"
+                                },
+                                {
+                                    "ExpandedNodeId": "nsu=http://microsoft.com/Opc/CfStation/;s=EnergyConsumption",
+                                    "Relevance": [
+                                        "Kpi2"
+                                    ],
+                                    "OpCode": "Sum",
+                                    "Units": "kWh"
+                                },
+                                {
+                                    "ExpandedNodeId": "nsu=http://microsoft.com/Opc/CfStation/;s=Pressure",
+                                    "OpCode": "Avg",
+                                    "Units": "mbar",
+                                    "Maximum": 4500
+                                },
+                                {
+                                    "ExpandedNodeId": "nsu=http://microsoft.com/Opc/CfStation/;s=ActualCycleTime",
+                                    "Relevance": [
+                                        "OeePerformance_Actual"
+                                    ],
+                                    "OpCode": "Avg",
+                                    "Units": "ms"
+                                },
+                                {
+                                    "ConstValue": 11000,
+                                    "SymbolicName": "IdealCycleTime",
+                                    "OpCode": "Const",
+                                    "Visible": false,
+                                    "Units": "ms",
+                                    "Relevance": [
+                                        "OeePerformance_Ideal"
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "Name": "Test",
+                            "Description": "Gasket test station",
+                            "Image": "testing_station.png",
+                            "ImagePushpin": {
+                                "Top": 273,
+                                "Left": 303
+                            },
+                            "OpcApplicationUri": "urn:mumbai-productionline1-test",
+                            "OpcEndpointUrl": "opc.tcp://mumbai-productionline1-test:51211",
+                            "Simulation": {
+                                "Type": "test",
+                                "Args": "100 11 no"
+                            },
+                            "Kpi1": {
+                                "Minimum": 81,
+                                "Target": 163,
+                                "Maximum": 327
+                            },
+                            "Kpi2": {
+                                "Minimum": 25,
+                                "Target": 50,
+                                "Maximum": 100
+                            },
+                            "OpcNodes": [
+                                {
+                                    "ExpandedNodeId": "nsu=http://microsoft.com/Opc/CfStation/;s=NumberOfManufacturedProducts",
+                                    "Relevance": [
+                                        "Kpi1",
+                                        "OeeQuality_Good"
+                                    ],
+                                    "OpCode": "SubMaxMin"
+                                },
+                                {
+                                    "ExpandedNodeId": "nsu=http://microsoft.com/Opc/CfStation/;s=NumberOfDiscardedProducts",
+                                    "Relevance": [
+                                        "OeeQuality_Bad"
+                                    ],
+                                    "OpCode": "SubMaxMin"
+                                },
+                                {
+                                    "ExpandedNodeId": "nsu=http://microsoft.com/Opc/CfStation/;s=FaultyTime",
+                                    "Relevance": [
+                                        "OeeAvailability_Fault"
+                                    ],
+                                    "OpCode": "Sum",
+                                    "Units": "ms"
+                                },
+                                {
+                                    "SymbolicName": "RunningTime",
+                                    "Relevance": [
+                                        "OeeAvailability_Running"
+                                    ],
+                                    "OpCode": "Timespan",
+                                    "Visible": false,
+                                    "Units": "ms"
+                                },
+                                {
+                                    "ExpandedNodeId": "nsu=http://microsoft.com/Opc/CfStation/;s=EnergyConsumption",
+                                    "Relevance": [
+                                        "Kpi2"
+                                    ],
+                                    "OpCode": "Sum",
+                                    "Units": "kWh"
+                                },
+                                {
+                                    "ExpandedNodeId": "nsu=http://microsoft.com/Opc/CfStation/;s=ActualCycleTime",
+                                    "Relevance": [
+                                        "OeePerformance_Actual"
+                                    ],
+                                    "OpCode": "Avg",
+                                    "Units": "ms"
+                                },
+                                {
+                                    "ConstValue": 11000,
+                                    "SymbolicName": "IdealCycleTime",
+                                    "OpCode": "Const",
+                                    "Visible": false,
+                                    "Units": "ms",
+                                    "Relevance": [
+                                        "OeePerformance_Ideal"
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "Name": "Packaging",
+                            "Description": "Gasket packaging station",
+                            "Image": "packing_station.png",
+                            "ImagePushpin": {
+                                "Top": 390,
+                                "Left": 560
+                            },
+                            "OpcApplicationUri": "urn:mumbai-productionline1-packaging",
+                            "OpcEndpointUrl": "opc.tcp://mumbai-productionline1-packaging:51212",
+                            "Simulation": {
+                                "Type": "packaging",
+                                "Args": "100 11 no"
+                            },
+                            "Kpi1": {
+                                "Minimum": 81,
+                                "Target": 163,
+                                "Maximum": 327
+                            },
+                            "Kpi2": {
+                                "Minimum": 25,
+                                "Target": 50,
+                                "Maximum": 100
+                            },
+                            "OpcNodes": [
+                                {
+                                    "ExpandedNodeId": "nsu=http://microsoft.com/Opc/CfStation/;s=NumberOfManufacturedProducts",
+                                    "Relevance": [
+                                        "Kpi1",
+                                        "OeeQuality_Good"
+                                    ],
+                                    "OpCode": "SubMaxMin"
+                                },
+                                {
+                                    "ExpandedNodeId": "nsu=http://microsoft.com/Opc/CfStation/;s=NumberOfDiscardedProducts",
+                                    "Relevance": [
+                                        "OeeQuality_Bad"
+                                    ],
+                                    "OpCode": "SubMaxMin"
+                                },
+                                {
+                                    "ExpandedNodeId": "nsu=http://microsoft.com/Opc/CfStation/;s=FaultyTime",
+                                    "Relevance": [
+                                        "OeeAvailability_Fault"
+                                    ],
+                                    "OpCode": "Sum",
+                                    "Units": "ms"
+                                },
+                                {
+                                    "SymbolicName": "RunningTime",
+                                    "Relevance": [
+                                        "OeeAvailability_Running"
+                                    ],
+                                    "OpCode": "Timespan",
+                                    "Visible": false,
+                                    "Units": "ms"
+                                },
+                                {
+                                    "ExpandedNodeId": "nsu=http://microsoft.com/Opc/CfStation/;s=EnergyConsumption",
+                                    "Relevance": [
+                                        "Kpi2"
+                                    ],
+                                    "OpCode": "Sum",
+                                    "Units": "kWh"
+                                },
+                                {
+                                    "ExpandedNodeId": "nsu=http://microsoft.com/Opc/CfStation/;s=ActualCycleTime",
+                                    "Relevance": [
+                                        "OeePerformance_Actual"
+                                    ],
+                                    "OpCode": "Avg",
+                                    "Units": "ms"
+                                },
+                                {
+                                    "ConstValue": 11000,
+                                    "SymbolicName": "IdealCycleTime",
+                                    "OpCode": "Const",
+                                    "Visible": false,
+                                    "Units": "ms",
+                                    "Relevance": [
+                                        "OeePerformance_Ideal"
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "Domain": "seattle",
+            "Name": "Seattle",
+            "Description": "Bearings",
+            "Location": {
+                "City": "Seattle",
+                "Country": "United States",
+                "Latitude": 47.60357,
+                "Longitude": -122.3295
+            },
+            "Image": "factory.png",
+            "Shopfloor": {
+                "Type": "Simulation"
+            },
+            "ProductionLines": [
+                {
+                    "Guid": "103A4B41-AFAE-4B5E-BAA0-18FF3FCCCB3B",
+                    "Name": "Production Line 1",
+                    "Description": "Needle bearing",
+                    "Image": "factory_floor.gif",
+                    "ImagePushpin": {
+                        "Top": 290,
+                        "Left": 425
+                    },
+                    "Stations": [
+                        {
+                            "Name": "Assembly",
+                            "Description": "Needle bearing assembly station",
+                            "Image": "assembly_station.png",
+                            "ImagePushpin": {
+                                "Top": 370,
+                                "Left": 133
+                            },
+                            "OpcApplicationUri": "urn:seattle-productionline1-assembly",
+                            "OpcEndpointUrl": "opc.tcp://seattle-productionline1-assembly:51210",
+                            "Simulation": {
+                                "Type": "assembly",
+                                "Args": "200 6 yes"
+                            },
+                            "Kpi1": {
+                                "Minimum": 150,
+                                "Target": 300,
+                                "Maximum": 600
+                            },
+                            "Kpi2": {
+                                "Minimum": 50,
+                                "Target": 100,
+                                "Maximum": 200
+                            },
+                            "OpcNodes": [
+                                {
+                                    "ExpandedNodeId": "nsu=http://microsoft.com/Opc/CfStation/;s=NumberOfManufacturedProducts",
+                                    "Relevance": [
+                                        "Kpi1",
+                                        "OeeQuality_Good"
+                                    ],
+                                    "OpCode": "SubMaxMin"
+                                },
+                                {
+                                    "ExpandedNodeId": "nsu=http://microsoft.com/Opc/CfStation/;s=NumberOfDiscardedProducts",
+                                    "Relevance": [
+                                        "OeeQuality_Bad"
+                                    ],
+                                    "OpCode": "SubMaxMin"
+                                },
+                                {
+                                    "ExpandedNodeId": "nsu=http://microsoft.com/Opc/CfStation/;s=FaultyTime",
+                                    "Relevance": [
+                                        "OeeAvailability_Fault"
+                                    ],
+                                    "OpCode": "Sum",
+                                    "Units": "ms"
+                                },
+                                {
+                                    "SymbolicName": "RunningTime",
+                                    "Relevance": [
+                                        "OeeAvailability_Running"
+                                    ],
+                                    "OpCode": "Timespan",
+                                    "Visible": false,
+                                    "Units": "ms"
+                                },
+                                {
+                                    "ExpandedNodeId": "nsu=http://microsoft.com/Opc/CfStation/;s=EnergyConsumption",
+                                    "Relevance": [
+                                        "Kpi2"
+                                    ],
+                                    "OpCode": "Sum",
+                                    "Units": "kWh"
+                                },
+                                {
+                                    "ExpandedNodeId": "nsu=http://microsoft.com/Opc/CfStation/;s=Pressure",
+                                    "OpCode": "Avg",
+                                    "Units": "mbar",
+                                    "Maximum": 4500
+                                },
+                                {
+                                    "ExpandedNodeId": "nsu=http://microsoft.com/Opc/CfStation/;s=ActualCycleTime",
+                                    "Relevance": [
+                                        "OeePerformance_Actual"
+                                    ],
+                                    "OpCode": "Avg",
+                                    "Units": "ms"
+                                },
+                                {
+                                    "ConstValue": 6000,
+                                    "SymbolicName": "IdealCycleTime",
+                                    "OpCode": "Const",
+                                    "Visible": false,
+                                    "Units": "ms",
+                                    "Relevance": [
+                                        "OeePerformance_Ideal"
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "Name": "Test #1",
+                            "Description": "Needle bearing test station",
+                            "Image": "testing_station.png",
+                            "ImagePushpin": {
+                                "Top": 273,
+                                "Left": 303
+                            },
+                            "OpcApplicationUri": "urn:seattle-productionline1-test",
+                            "OpcEndpointUrl": "opc.tcp://seattle-productionline1-test:51211",
+                            "Simulation": {
+                                "Type": "test",
+                                "Args": "100 6 no"
+                            },
+                            "Kpi1": {
+                                "Minimum": 150,
+                                "Target": 300,
+                                "Maximum": 600
+                            },
+                            "Kpi2": {
+                                "Minimum": 25,
+                                "Target": 50,
+                                "Maximum": 100
+                            },
+                            "OpcNodes": [
+                                {
+                                    "ExpandedNodeId": "nsu=http://microsoft.com/Opc/CfStation/;s=NumberOfManufacturedProducts",
+                                    "Relevance": [
+                                        "Kpi1",
+                                        "OeeQuality_Good"
+                                    ],
+                                    "OpCode": "SubMaxMin"
+                                },
+                                {
+                                    "ExpandedNodeId": "nsu=http://microsoft.com/Opc/CfStation/;s=NumberOfDiscardedProducts",
+                                    "Relevance": [
+                                        "OeeQuality_Bad"
+                                    ],
+                                    "OpCode": "SubMaxMin"
+                                },
+                                {
+                                    "ExpandedNodeId": "nsu=http://microsoft.com/Opc/CfStation/;s=FaultyTime",
+                                    "Relevance": [
+                                        "OeeAvailability_Fault"
+                                    ],
+                                    "OpCode": "Sum",
+                                    "Units": "ms"
+                                },
+                                {
+                                    "SymbolicName": "RunningTime",
+                                    "Relevance": [
+                                        "OeeAvailability_Running"
+                                    ],
+                                    "OpCode": "Timespan",
+                                    "Visible": false,
+                                    "Units": "ms"
+                                },
+                                {
+                                    "ExpandedNodeId": "nsu=http://microsoft.com/Opc/CfStation/;s=EnergyConsumption",
+                                    "Relevance": [
+                                        "Kpi2"
+                                    ],
+                                    "OpCode": "Sum",
+                                    "Units": "kWh"
+                                },
+                                {
+                                    "ExpandedNodeId": "nsu=http://microsoft.com/Opc/CfStation/;s=ActualCycleTime",
+                                    "Relevance": [
+                                        "OeePerformance_Actual"
+                                    ],
+                                    "OpCode": "Avg",
+                                    "Units": "ms"
+                                },
+                                {
+                                    "ConstValue": 6000,
+                                    "SymbolicName": "IdealCycleTime",
+                                    "OpCode": "Const",
+                                    "Visible": false,
+                                    "Units": "ms",
+                                    "Relevance": [
+                                        "OeePerformance_Ideal"
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "Name": "Packaging",
+                            "Description": "Needle bearing packaging station",
+                            "Image": "packing_station.png",
+                            "ImagePushpin": {
+                                "Top": 390,
+                                "Left": 560
+                            },
+                            "OpcApplicationUri": "urn:seattle-productionline1-packaging",
+                            "OpcEndpointUrl": "opc.tcp://seattle-productionline1-packaging:51212",
+                            "Simulation": {
+                                "Type": "packaging",
+                                "Args": "100 6 no"
+                            },
+                            "Kpi1": {
+                                "Minimum": 150,
+                                "Target": 300,
+                                "Maximum": 600
+                            },
+                            "Kpi2": {
+                                "Minimum": 25,
+                                "Target": 50,
+                                "Maximum": 100
+                            },
+                            "OpcNodes": [
+                                {
+                                    "ExpandedNodeId": "nsu=http://microsoft.com/Opc/CfStation/;s=NumberOfManufacturedProducts",
+                                    "Relevance": [
+                                        "Kpi1",
+                                        "OeeQuality_Good"
+                                    ],
+                                    "OpCode": "SubMaxMin"
+                                },
+                                {
+                                    "ExpandedNodeId": "nsu=http://microsoft.com/Opc/CfStation/;s=NumberOfDiscardedProducts",
+                                    "Relevance": [
+                                        "OeeQuality_Bad"
+                                    ],
+                                    "OpCode": "SubMaxMin"
+                                },
+                                {
+                                    "ExpandedNodeId": "nsu=http://microsoft.com/Opc/CfStation/;s=FaultyTime",
+                                    "Relevance": [
+                                        "OeeAvailability_Fault"
+                                    ],
+                                    "OpCode": "Sum",
+                                    "Units": "ms"
+                                },
+                                {
+                                    "SymbolicName": "RunningTime",
+                                    "Relevance": [
+                                        "OeeAvailability_Running"
+                                    ],
+                                    "OpCode": "Timespan",
+                                    "Visible": false,
+                                    "Units": "ms"
+                                },
+                                {
+                                    "ExpandedNodeId": "nsu=http://microsoft.com/Opc/CfStation/;s=EnergyConsumption",
+                                    "Relevance": [
+                                        "Kpi2"
+                                    ],
+                                    "OpCode": "Sum",
+                                    "Units": "kWh"
+                                },
+                                {
+                                    "ExpandedNodeId": "nsu=http://microsoft.com/Opc/CfStation/;s=ActualCycleTime",
+                                    "Relevance": [
+                                        "OeePerformance_Actual"
+                                    ],
+                                    "OpCode": "Avg",
+                                    "Units": "ms"
+                                },
+                                {
+                                    "ConstValue": 6000,
+                                    "SymbolicName": "IdealCycleTime",
+                                    "OpCode": "Const",
+                                    "Visible": false,
+                                    "Units": "ms",
+                                    "Relevance": [
+                                        "OeePerformance_Ideal"
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "Domain": "beijing",
+            "Name": "Beijing",
+            "Description": "Air conditioning system",
+            "Location": {
+                "City": "Beijing",
+                "Country": "China",
+                "Latitude": 39.90657,
+                "Longitude": 116.3876
+            },
+            "Image": "factory.png",
+            "Shopfloor": {
+                "Type": "Simulation"
+            },
+            "ProductionLines": [
+                {
+                    "Guid": "ACF8783D-DFE4-4E93-8AF0-632592B52B75",
+                    "Name": "Production Line 1",
+                    "Description": "Condenser",
+                    "Image": "factory_floor.gif",
+                    "ImagePushpin": {
+                        "Top": 260,
+                        "Left": 158
+                    },
+                    "Stations": [
+                        {
+                            "Name": "Assembly",
+                            "Description": "Condenser bearing assembly station",
+                            "Image": "assembly_station.png",
+                            "ImagePushpin": {
+                                "Top": 370,
+                                "Left": 133
+                            },
+                            "OpcApplicationUri": "urn:beijing-productionline1-assembly",
+                            "OpcEndpointUrl": "opc.tcp://beijing-productionline1-assembly:51210",
+                            "Simulation": {
+                                "Type": "assembly",
+                                "Args": "200 9 yes"
+                            },
+                            "Kpi1": {
+                                "Minimum": 100,
+                                "Target": 200,
+                                "Maximum": 400
+                            },
+                            "Kpi2": {
+                                "Minimum": 50,
+                                "Target": 100,
+                                "Maximum": 200
+                            },
+                            "OpcNodes": [
+                                {
+                                    "ExpandedNodeId": "nsu=http://microsoft.com/Opc/CfStation/;s=NumberOfManufacturedProducts",
+                                    "Relevance": [
+                                        "Kpi1",
+                                        "OeeQuality_Good"
+                                    ],
+                                    "OpCode": "SubMaxMin"
+                                },
+                                {
+                                    "ExpandedNodeId": "nsu=http://microsoft.com/Opc/CfStation/;s=NumberOfDiscardedProducts",
+                                    "Relevance": [
+                                        "OeeQuality_Bad"
+                                    ],
+                                    "OpCode": "SubMaxMin"
+                                },
+                                {
+                                    "ExpandedNodeId": "nsu=http://microsoft.com/Opc/CfStation/;s=FaultyTime",
+                                    "Relevance": [
+                                        "OeeAvailability_Fault"
+                                    ],
+                                    "OpCode": "Sum",
+                                    "Units": "ms"
+                                },
+                                {
+                                    "SymbolicName": "RunningTime",
+                                    "Relevance": [
+                                        "OeeAvailability_Running"
+                                    ],
+                                    "OpCode": "Timespan",
+                                    "Visible": false,
+                                    "Units": "ms"
+                                },
+                                {
+                                    "ExpandedNodeId": "nsu=http://microsoft.com/Opc/CfStation/;s=EnergyConsumption",
+                                    "Relevance": [
+                                        "Kpi2"
+                                    ],
+                                    "OpCode": "Sum",
+                                    "Units": "kWh"
+                                },
+                                {
+                                    "ExpandedNodeId": "nsu=http://microsoft.com/Opc/CfStation/;s=Pressure",
+                                    "OpCode": "Avg",
+                                    "Units": "mbar",
+                                    "Maximum": 4500
+                                },
+                                {
+                                    "ExpandedNodeId": "nsu=http://microsoft.com/Opc/CfStation/;s=ActualCycleTime",
+                                    "Relevance": [
+                                        "OeePerformance_Actual"
+                                    ],
+                                    "OpCode": "Avg",
+                                    "Units": "ms"
+                                },
+                                {
+                                    "ConstValue": 9000,
+                                    "SymbolicName": "IdealCycleTime",
+                                    "OpCode": "Const",
+                                    "Visible": false,
+                                    "Units": "ms",
+                                    "Relevance": [
+                                        "OeePerformance_Ideal"
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "Name": "Test #1",
+                            "Description": "Condenser bearing test station",
+                            "Image": "testing_station.png",
+                            "ImagePushpin": {
+                                "Top": 273,
+                                "Left": 303
+                            },
+                            "OpcApplicationUri": "urn:beijing-productionline1-test",
+                            "OpcEndpointUrl": "opc.tcp://beijing-productionline1-test:51211",
+                            "Simulation": {
+                                "Type": "test",
+                                "Args": "100 9 no"
+                            },
+                            "Kpi1": {
+                                "Minimum": 100,
+                                "Target": 200,
+                                "Maximum": 400
+                            },
+                            "Kpi2": {
+                                "Minimum": 25,
+                                "Target": 50,
+                                "Maximum": 100
+                            },
+                            "OpcNodes": [
+                                {
+                                    "ExpandedNodeId": "nsu=http://microsoft.com/Opc/CfStation/;s=NumberOfManufacturedProducts",
+                                    "Relevance": [
+                                        "Kpi1",
+                                        "OeeQuality_Good"
+                                    ],
+                                    "OpCode": "SubMaxMin"
+                                },
+                                {
+                                    "ExpandedNodeId": "nsu=http://microsoft.com/Opc/CfStation/;s=NumberOfDiscardedProducts",
+                                    "Relevance": [
+                                        "OeeQuality_Bad"
+                                    ],
+                                    "OpCode": "SubMaxMin"
+                                },
+                                {
+                                    "ExpandedNodeId": "nsu=http://microsoft.com/Opc/CfStation/;s=FaultyTime",
+                                    "Relevance": [
+                                        "OeeAvailability_Fault"
+                                    ],
+                                    "OpCode": "Sum",
+                                    "Units": "ms"
+                                },
+                                {
+                                    "SymbolicName": "RunningTime",
+                                    "OpCode": "Timespan",
+                                    "Visible": false,
+                                    "Units": "ms"
+                                },
+                                {
+                                    "ExpandedNodeId": "nsu=http://microsoft.com/Opc/CfStation/;s=EnergyConsumption",
+                                    "Relevance": [
+                                        "Kpi2"
+                                    ],
+                                    "OpCode": "Sum",
+                                    "Units": "kWh"
+                                },
+                                {
+                                    "ExpandedNodeId": "nsu=http://microsoft.com/Opc/CfStation/;s=ActualCycleTime",
+                                    "Relevance": [
+                                        "OeePerformance_Actual"
+                                    ],
+                                    "OpCode": "Avg",
+                                    "Units": "ms"
+                                },
+                                {
+                                    "ConstValue": 9000,
+                                    "SymbolicName": "IdealCycleTime",
+                                    "OpCode": "Const",
+                                    "Visible": false,
+                                    "Units": "ms",
+                                    "Relevance": [
+                                        "OeePerformance_Ideal"
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "Name": "Packaging #1",
+                            "Description": "Condenser bearing packaging station",
+                            "Image": "packing_station.png",
+                            "ImagePushpin": {
+                                "Top": 390,
+                                "Left": 560
+                            },
+                            "OpcApplicationUri": "urn:beijing-productionline1-packaging",
+                            "OpcEndpointUrl": "opc.tcp://beijing-productionline1-packaging:51212",
+                            "Simulation": {
+                                "Type": "packaging",
+                                "Args": "100 9 no"
+                            },
+                            "Kpi1": {
+                                "Minimum": 100,
+                                "Target": 200,
+                                "Maximum": 400
+                            },
+                            "Kpi2": {
+                                "Minimum": 25,
+                                "Target": 50,
+                                "Maximum": 100
+                            },
+                            "OpcNodes": [
+                                {
+                                    "ExpandedNodeId": "nsu=http://microsoft.com/Opc/CfStation/;s=NumberOfManufacturedProducts",
+                                    "Relevance": [
+                                        "Kpi1",
+                                        "OeeQuality_Good"
+                                    ],
+                                    "OpCode": "SubMaxMin"
+                                },
+                                {
+                                    "ExpandedNodeId": "nsu=http://microsoft.com/Opc/CfStation/;s=NumberOfDiscardedProducts",
+                                    "Relevance": [
+                                        "OeeQuality_Bad"
+                                    ],
+                                    "OpCode": "SubMaxMin"
+                                },
+                                {
+                                    "ExpandedNodeId": "nsu=http://microsoft.com/Opc/CfStation/;s=FaultyTime",
+                                    "Relevance": [
+                                        "OeeAvailability_Fault"
+                                    ],
+                                    "OpCode": "Sum",
+                                    "Units": "ms"
+                                },
+                                {
+                                    "SymbolicName": "RunningTime",
+                                    "Relevance": [
+                                        "OeeAvailability_Running"
+                                    ],
+                                    "OpCode": "Timespan",
+                                    "Visible": false,
+                                    "Units": "ms"
+                                },
+                                {
+                                    "ExpandedNodeId": "nsu=http://microsoft.com/Opc/CfStation/;s=EnergyConsumption",
+                                    "Relevance": [
+                                        "Kpi2"
+                                    ],
+                                    "OpCode": "Sum",
+                                    "Units": "kWh"
+                                },
+                                {
+                                    "ExpandedNodeId": "nsu=http://microsoft.com/Opc/CfStation/;s=ActualCycleTime",
+                                    "Relevance": [
+                                        "OeePerformance_Actual"
+                                    ],
+                                    "OpCode": "Avg",
+                                    "Units": "ms"
+                                },
+                                {
+                                    "ConstValue": 9000,
+                                    "SymbolicName": "IdealCycleTime",
+                                    "OpCode": "Const",
+                                    "Visible": false,
+                                    "Units": "ms",
+                                    "Relevance": [
+                                        "OeePerformance_Ideal"
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "Guid": "C51003AC-3DAE-4B60-A7BC-6E6A45782B9D",
+                    "Name": "Production Line 2",
+                    "Description": "Compressor",
+                    "Image": "factory_floor.gif",
+                    "ImagePushpin": {
+                        "Top": 290,
+                        "Left": 425
+                    },
+                    "Stations": [
+                        {
+                            "Name": "Assembly",
+                            "Description": "Compressor assembly station",
+                            "Image": "assembly_station.png",
+                            "OpcApplicationUri": "urn:beijing-productionline2-assembly",
+                            "OpcEndpointUrl": "opc.tcp://beijing-productionline2-assembly:51210",
+                            "Simulation": {
+                                "Type": "assembly",
+                                "Args": "200 8 yes"
+                            },
+                            "Kpi1": {
+                                "Minimum": 112,
+                                "Target": 225,
+                                "Maximum": 450
+                            },
+                            "Kpi2": {
+                                "Minimum": 50,
+                                "Target": 100,
+                                "Maximum": 200
+                            },
+                            "OpcNodes": [
+                                {
+                                    "ExpandedNodeId": "nsu=http://microsoft.com/Opc/CfStation/;s=NumberOfManufacturedProducts",
+                                    "Relevance": [
+                                        "Kpi1",
+                                        "OeeQuality_Good"
+                                    ],
+                                    "OpCode": "SubMaxMin"
+                                },
+                                {
+                                    "ExpandedNodeId": "nsu=http://microsoft.com/Opc/CfStation/;s=NumberOfDiscardedProducts",
+                                    "Relevance": [
+                                        "OeeQuality_Bad"
+                                    ],
+                                    "OpCode": "SubMaxMin"
+                                },
+                                {
+                                    "ExpandedNodeId": "nsu=http://microsoft.com/Opc/CfStation/;s=FaultyTime",
+                                    "Relevance": [
+                                        "OeeAvailability_Fault"
+                                    ],
+                                    "OpCode": "Sum",
+                                    "Units": "ms"
+                                },
+                                {
+                                    "SymbolicName": "RunningTime",
+                                    "Relevance": [
+                                        "OeeAvailability_Running"
+                                    ],
+                                    "OpCode": "Timespan",
+                                    "Visible": false,
+                                    "Units": "ms"
+                                },
+                                {
+                                    "ExpandedNodeId": "nsu=http://microsoft.com/Opc/CfStation/;s=EnergyConsumption",
+                                    "Relevance": [
+                                        "Kpi2"
+                                    ],
+                                    "OpCode": "Sum",
+                                    "Units": "kWh"
+                                },
+                                {
+                                    "ExpandedNodeId": "nsu=http://microsoft.com/Opc/CfStation/;s=Pressure",
+                                    "OpCode": "Avg",
+                                    "Units": "mbar",
+                                    "Maximum": 4500
+                                },
+                                {
+                                    "ExpandedNodeId": "nsu=http://microsoft.com/Opc/CfStation/;s=ActualCycleTime",
+                                    "Relevance": [
+                                        "OeePerformance_Actual"
+                                    ],
+                                    "OpCode": "Avg",
+                                    "Units": "ms"
+                                },
+                                {
+                                    "ConstValue": 8000,
+                                    "SymbolicName": "IdealCycleTime",
+                                    "OpCode": "Const",
+                                    "Visible": false,
+                                    "Units": "ms",
+                                    "Relevance": [
+                                        "OeePerformance_Ideal"
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "Name": "Test",
+                            "Description": "Compressor test station",
+                            "Image": "testing_station.png",
+                            "ImagePushpin": {
+                                "Top": 273,
+                                "Left": 303
+                            },
+                            "OpcApplicationUri": "urn:beijing-productionline2-test",
+                            "OpcEndpointUrl": "opc.tcp://beijing-productionline2-test:51211",
+                            "Simulation": {
+                                "Type": "test",
+                                "Args": "100 8 no"
+                            },
+                            "Kpi1": {
+                                "Minimum": 112,
+                                "Target": 225,
+                                "Maximum": 450
+                            },
+                            "Kpi2": {
+                                "Minimum": 25,
+                                "Target": 50,
+                                "Maximum": 100
+                            },
+                            "OpcNodes": [
+                                {
+                                    "ExpandedNodeId": "nsu=http://microsoft.com/Opc/CfStation/;s=NumberOfManufacturedProducts",
+                                    "Relevance": [
+                                        "Kpi1",
+                                        "OeeQuality_Good"
+                                    ],
+                                    "OpCode": "SubMaxMin"
+                                },
+                                {
+                                    "ExpandedNodeId": "nsu=http://microsoft.com/Opc/CfStation/;s=NumberOfDiscardedProducts",
+                                    "Relevance": [
+                                        "OeeQuality_Bad"
+                                    ],
+                                    "OpCode": "SubMaxMin"
+                                },
+                                {
+                                    "ExpandedNodeId": "nsu=http://microsoft.com/Opc/CfStation/;s=FaultyTime",
+                                    "Relevance": [
+                                        "OeeAvailability_Fault"
+                                    ],
+                                    "OpCode": "Sum",
+                                    "Units": "ms"
+                                },
+                                {
+                                    "SymbolicName": "RunningTime",
+                                    "Relevance": [
+                                        "OeeAvailability_Running"
+                                    ],
+                                    "OpCode": "Timespan",
+                                    "Visible": false,
+                                    "Units": "ms"
+                                },
+                                {
+                                    "ExpandedNodeId": "nsu=http://microsoft.com/Opc/CfStation/;s=EnergyConsumption",
+                                    "Relevance": [
+                                        "Kpi2"
+                                    ],
+                                    "OpCode": "Sum",
+                                    "Units": "kWh"
+                                },
+                                {
+                                    "ExpandedNodeId": "nsu=http://microsoft.com/Opc/CfStation/;s=ActualCycleTime",
+                                    "Relevance": [
+                                        "OeePerformance_Actual"
+                                    ],
+                                    "OpCode": "Avg",
+                                    "Units": "ms"
+                                },
+                                {
+                                    "ConstValue": 8000,
+                                    "SymbolicName": "IdealCycleTime",
+                                    "OpCode": "Const",
+                                    "Visible": false,
+                                    "Units": "ms",
+                                    "Relevance": [
+                                        "OeePerformance_Ideal"
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "Name": "Packaging",
+                            "Description": "Compressor packaging station",
+                            "Image": "packing_station.png",
+                            "ImagePushpin": {
+                                "Top": 390,
+                                "Left": 560
+                            },
+                            "OpcApplicationUri": "urn:beijing-productionline2-packaging",
+                            "OpcEndpointUrl": "opc.tcp://beijing-productionline2-packaging:51212",
+                            "Simulation": {
+                                "Type": "packaging",
+                                "Args": "100 8 no"
+                            },
+                            "Kpi1": {
+                                "Minimum": 112,
+                                "Target": 225,
+                                "Maximum": 450
+                            },
+                            "Kpi2": {
+                                "Minimum": 25,
+                                "Target": 50,
+                                "Maximum": 100
+                            },
+                            "OpcNodes": [
+                                {
+                                    "ExpandedNodeId": "nsu=http://microsoft.com/Opc/CfStation/;s=NumberOfManufacturedProducts",
+                                    "Relevance": [
+                                        "Kpi1",
+                                        "OeeQuality_Good"
+                                    ],
+                                    "OpCode": "SubMaxMin"
+                                },
+                                {
+                                    "ExpandedNodeId": "nsu=http://microsoft.com/Opc/CfStation/;s=NumberOfDiscardedProducts",
+                                    "Relevance": [
+                                        "OeeQuality_Bad"
+                                    ],
+                                    "OpCode": "SubMaxMin"
+                                },
+                                {
+                                    "ExpandedNodeId": "nsu=http://microsoft.com/Opc/CfStation/;s=FaultyTime",
+                                    "Relevance": [
+                                        "OeeAvailability_Fault"
+                                    ],
+                                    "OpCode": "Sum",
+                                    "Units": "ms"
+                                },
+                                {
+                                    "SymbolicName": "RunningTime",
+                                    "Relevance": [
+                                        "OeeAvailability_Running"
+                                    ],
+                                    "OpCode": "Timespan",
+                                    "Visible": false,
+                                    "Units": "ms"
+                                },
+                                {
+                                    "ExpandedNodeId": "nsu=http://microsoft.com/Opc/CfStation/;s=EnergyConsumption",
+                                    "Relevance": [
+                                        "Kpi2"
+                                    ],
+                                    "OpCode": "Sum",
+                                    "Units": "kWh"
+                                },
+                                {
+                                    "ExpandedNodeId": "nsu=http://microsoft.com/Opc/CfStation/;s=ActualCycleTime",
+                                    "Relevance": [
+                                        "OeePerformance_Actual"
+                                    ],
+                                    "OpCode": "Avg",
+                                    "Units": "ms"
+                                },
+                                {
+                                    "ConstValue": 3000,
+                                    "SymbolicName": "IdealCycleTime",
+                                    "OpCode": "Const",
+                                    "Visible": false,
+                                    "Units": "ms",
+                                    "Relevance": [
+                                        "OeePerformance_Ideal"
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "Guid": "1C2FFBE0-C0C8-4A2E-B789-7F217D2A8A87",
+                    "Name": "Production Line 3",
+                    "Description": "Cooler",
+                    "Image": "factory_floor.gif",
+                    "ImagePushpin": {
+                        "Top": 260,
+                        "Left": 630
+                    },
+                    "Stations": [
+                        {
+                            "Name": "Assembly",
+                            "Description": "Cooler converter assembly station",
+                            "Image": "assembly_station.png",
+                            "ImagePushpin": {
+                                "Top": 370,
+                                "Left": 133
+                            },
+                            "OpcApplicationUri": "urn:beijing-productionline3-assembly",
+                            "OpcEndpointUrl": "opc.tcp://beijing-productionline3-assembly:51210",
+                            "Simulation": {
+                                "Type": "assembly",
+                                "Args": "200 4 yes"
+                            },
+                            "Kpi1": {
+                                "Minimum": 225,
+                                "Target": 450,
+                                "Maximum": 900
+                            },
+                            "Kpi2": {
+                                "Minimum": 50,
+                                "Target": 100,
+                                "Maximum": 200
+                            },
+                            "OpcNodes": [
+                                {
+                                    "ExpandedNodeId": "nsu=http://microsoft.com/Opc/CfStation/;s=NumberOfManufacturedProducts",
+                                    "Relevance": [
+                                        "Kpi1",
+                                        "OeeQuality_Good"
+                                    ],
+                                    "OpCode": "SubMaxMin"
+                                },
+                                {
+                                    "ExpandedNodeId": "nsu=http://microsoft.com/Opc/CfStation/;s=NumberOfDiscardedProducts",
+                                    "Relevance": [
+                                        "OeeQuality_Bad"
+                                    ],
+                                    "OpCode": "SubMaxMin"
+                                },
+                                {
+                                    "ExpandedNodeId": "nsu=http://microsoft.com/Opc/CfStation/;s=FaultyTime",
+                                    "Relevance": [
+                                        "OeeAvailability_Fault"
+                                    ],
+                                    "OpCode": "Sum",
+                                    "Units": "ms"
+                                },
+                                {
+                                    "SymbolicName": "RunningTime",
+                                    "Relevance": [
+                                        "OeeAvailability_Running"
+                                    ],
+                                    "OpCode": "Timespan",
+                                    "Visible": false,
+                                    "Units": "ms"
+                                },
+                                {
+                                    "ExpandedNodeId": "nsu=http://microsoft.com/Opc/CfStation/;s=EnergyConsumption",
+                                    "Relevance": [
+                                        "Kpi2"
+                                    ],
+                                    "OpCode": "Sum",
+                                    "Units": "kWh"
+                                },
+                                {
+                                    "ExpandedNodeId": "nsu=http://microsoft.com/Opc/CfStation/;s=Pressure",
+                                    "OpCode": "Avg",
+                                    "Units": "mbar",
+                                    "Maximum": 4500
+                                },
+                                {
+                                    "ExpandedNodeId": "nsu=http://microsoft.com/Opc/CfStation/;s=ActualCycleTime",
+                                    "Relevance": [
+                                        "OeePerformance_Actual"
+                                    ],
+                                    "OpCode": "Avg",
+                                    "Units": "ms"
+                                },
+                                {
+                                    "ConstValue": 4000,
+                                    "SymbolicName": "IdealCycleTime",
+                                    "OpCode": "Const",
+                                    "Visible": false,
+                                    "Units": "ms",
+                                    "Relevance": [
+                                        "OeePerformance_Ideal"
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "Name": "Test",
+                            "Description": "Cooler converter test station",
+                            "Image": "testing_station.png",
+                            "ImagePushpin": {
+                                "Top": 273,
+                                "Left": 303
+                            },
+                            "OpcApplicationUri": "urn:beijing-productionline3-test",
+                            "OpcEndpointUrl": "opc.tcp://beijing-productionline3-test:51211",
+                            "Simulation": {
+                                "Type": "test",
+                                "Args": "100 4 no"
+                            },
+                            "Kpi1": {
+                                "Minimum": 225,
+                                "Target": 450,
+                                "Maximum": 900
+                            },
+                            "Kpi2": {
+                                "Minimum": 25,
+                                "Target": 50,
+                                "Maximum": 100
+                            },
+                            "OpcNodes": [
+                                {
+                                    "ExpandedNodeId": "nsu=http://microsoft.com/Opc/CfStation/;s=NumberOfManufacturedProducts",
+                                    "Relevance": [
+                                        "Kpi1",
+                                        "OeeQuality_Good"
+                                    ],
+                                    "OpCode": "SubMaxMin"
+                                },
+                                {
+                                    "ExpandedNodeId": "nsu=http://microsoft.com/Opc/CfStation/;s=NumberOfDiscardedProducts",
+                                    "Relevance": [
+                                        "OeeQuality_Bad"
+                                    ],
+                                    "OpCode": "SubMaxMin"
+                                },
+                                {
+                                    "ExpandedNodeId": "nsu=http://microsoft.com/Opc/CfStation/;s=FaultyTime",
+                                    "Relevance": [
+                                        "OeeAvailability_Fault"
+                                    ],
+                                    "OpCode": "Sum",
+                                    "Units": "ms"
+                                },
+                                {
+                                    "SymbolicName": "RunningTime",
+                                    "Relevance": [
+                                        "OeeAvailability_Running"
+                                    ],
+                                    "OpCode": "Timespan",
+                                    "Visible": false,
+                                    "Units": "ms"
+                                },
+                                {
+                                    "ExpandedNodeId": "nsu=http://microsoft.com/Opc/CfStation/;s=EnergyConsumption",
+                                    "Relevance": [
+                                        "Kpi2"
+                                    ],
+                                    "OpCode": "Sum",
+                                    "Units": "kWh"
+                                },
+                                {
+                                    "ExpandedNodeId": "nsu=http://microsoft.com/Opc/CfStation/;s=ActualCycleTime",
+                                    "Relevance": [
+                                        "OeePerformance_Actual"
+                                    ],
+                                    "OpCode": "Avg",
+                                    "Units": "ms"
+                                },
+                                {
+                                    "ConstValue": 4000,
+                                    "SymbolicName": "IdealCycleTime",
+                                    "OpCode": "Const",
+                                    "Visible": false,
+                                    "Units": "ms",
+                                    "Relevance": [
+                                        "OeePerformance_Ideal"
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "Name": "Packaging",
+                            "Description": "Cooler converter packaging station",
+                            "Image": "packing_station.png",
+                            "ImagePushpin": {
+                                "Top": 390,
+                                "Left": 560
+                            },
+                            "OpcApplicationUri": "urn:beijing-productionline3-packaging",
+                            "OpcEndpointUrl": "opc.tcp://beijing-productionline3-packaging:51212",
+                            "Simulation": {
+                                "Type": "packaging",
+                                "Args": "100 4 no"
+                            },
+                            "Kpi1": {
+                                "Minimum": 225,
+                                "Target": 450,
+                                "Maximum": 900
+                            },
+                            "Kpi2": {
+                                "Minimum": 25,
+                                "Target": 50,
+                                "Maximum": 100
+                            },
+                            "OpcNodes": [
+                                {
+                                    "ExpandedNodeId": "nsu=http://microsoft.com/Opc/CfStation/;s=NumberOfManufacturedProducts",
+                                    "Relevance": [
+                                        "Kpi1",
+                                        "OeeQuality_Good"
+                                    ],
+                                    "OpCode": "SubMaxMin"
+                                },
+                                {
+                                    "ExpandedNodeId": "nsu=http://microsoft.com/Opc/CfStation/;s=NumberOfDiscardedProducts",
+                                    "Relevance": [
+                                        "OeeQuality_Bad"
+                                    ],
+                                    "OpCode": "SubMaxMin"
+                                },
+                                {
+                                    "ExpandedNodeId": "nsu=http://microsoft.com/Opc/CfStation/;s=FaultyTime",
+                                    "Relevance": [
+                                        "OeeAvailability_Fault"
+                                    ],
+                                    "OpCode": "Sum",
+                                    "Units": "ms"
+                                },
+                                {
+                                    "SymbolicName": "RunningTime",
+                                    "Relevance": [
+                                        "OeeAvailability_Running"
+                                    ],
+                                    "OpCode": "Timespan",
+                                    "Visible": false,
+                                    "Units": "ms"
+                                },
+                                {
+                                    "ExpandedNodeId": "nsu=http://microsoft.com/Opc/CfStation/;s=EnergyConsumption",
+                                    "Relevance": [
+                                        "Kpi2"
+                                    ],
+                                    "OpCode": "Sum",
+                                    "Units": "kWh"
+                                },
+                                {
+                                    "ExpandedNodeId": "nsu=http://microsoft.com/Opc/CfStation/;s=ActualCycleTime",
+                                    "Relevance": [
+                                        "OeePerformance_Actual"
+                                    ],
+                                    "OpCode": "Avg",
+                                    "Units": "ms"
+                                },
+                                {
+                                    "ConstValue": 4000,
+                                    "SymbolicName": "IdealCycleTime",
+                                    "OpCode": "Const",
+                                    "Visible": false,
+                                    "Units": "ms",
+                                    "Relevance": [
+                                        "OeePerformance_Ideal"
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "Domain": "rio",
+            "Name": "Rio De Janeiro",
+            "Description": "Suspension system",
+            "Location": {
+                "City": "Rio De Janeiro",
+                "Country": "Brazil",
+                "Latitude": -22.91216,
+                "Longitude": -43.17501
+            },
+            "Image": "factory.png",
+            "Shopfloor": {
+                "Type": "Simulation"
+            },
+            "ProductionLines": [
+                {
+                    "Guid": "BF1644C7-30CF-4581-BE59-43992C681756",
+                    "Name": "Production Line 1",
+                    "Description": "Beam axle",
+                    "Image": "factory_floor.gif",
+                    "ImagePushpin": {
+                        "Top": 290,
+                        "Left": 425
+                    },
+                    "Stations": [
+                        {
+                            "Name": "Assembly",
+                            "Description": "Beam axle assembly station",
+                            "Image": "assembly_station.png",
+                            "ImagePushpin": {
+                                "Top": 370,
+                                "Left": 133
+                            },
+                            "OpcApplicationUri": "urn:rio-productionline1-assembly",
+                            "OpcEndpointUrl": "opc.tcp://rio-productionline1-assembly:51210",
+                            "Simulation": {
+                                "Type": "assembly",
+                                "Args": "200 10 yes"
+                            },
+                            "Kpi1": {
+                                "Minimum": 90,
+                                "Target": 180,
+                                "Maximum": 360
+                            },
+                            "Kpi2": {
+                                "Minimum": 50,
+                                "Target": 100,
+                                "Maximum": 200
+                            },
+                            "OpcNodes": [
+                                {
+                                    "ExpandedNodeId": "nsu=http://microsoft.com/Opc/CfStation/;s=NumberOfManufacturedProducts",
+                                    "Relevance": [
+                                        "Kpi1",
+                                        "OeeQuality_Good"
+                                    ],
+                                    "OpCode": "SubMaxMin"
+                                },
+                                {
+                                    "ExpandedNodeId": "nsu=http://microsoft.com/Opc/CfStation/;s=NumberOfDiscardedProducts",
+                                    "Relevance": [
+                                        "OeeQuality_Bad"
+                                    ],
+                                    "OpCode": "SubMaxMin"
+                                },
+                                {
+                                    "ExpandedNodeId": "nsu=http://microsoft.com/Opc/CfStation/;s=FaultyTime",
+                                    "Relevance": [
+                                        "OeeAvailability_Fault"
+                                    ],
+                                    "OpCode": "Sum",
+                                    "Units": "ms"
+                                },
+                                {
+                                    "SymbolicName": "RunningTime",
+                                    "Relevance": [
+                                        "OeeAvailability_Running"
+                                    ],
+                                    "OpCode": "Timespan",
+                                    "Visible": false,
+                                    "Units": "ms"
+                                },
+                                {
+                                    "ExpandedNodeId": "nsu=http://microsoft.com/Opc/CfStation/;s=EnergyConsumption",
+                                    "Relevance": [
+                                        "Kpi2"
+                                    ],
+                                    "OpCode": "Sum",
+                                    "Units": "kWh"
+                                },
+                                {
+                                    "ExpandedNodeId": "nsu=http://microsoft.com/Opc/CfStation/;s=Pressure",
+                                    "OpCode": "Avg",
+                                    "Units": "mbar",
+                                    "Maximum": 4500
+                                },
+                                {
+                                    "ExpandedNodeId": "nsu=http://microsoft.com/Opc/CfStation/;s=ActualCycleTime",
+                                    "Relevance": [
+                                        "OeePerformance_Actual"
+                                    ],
+                                    "OpCode": "Avg",
+                                    "Units": "ms"
+                                },
+                                {
+                                    "ConstValue": 10000,
+                                    "SymbolicName": "IdealCycleTime",
+                                    "OpCode": "Const",
+                                    "Visible": false,
+                                    "Units": "ms",
+                                    "Relevance": [
+                                        "OeePerformance_Ideal"
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "Name": "Test #1",
+                            "Description": "Beam axle test station",
+                            "Image": "testing_station.png",
+                            "ImagePushpin": {
+                                "Top": 273,
+                                "Left": 303
+                            },
+                            "OpcApplicationUri": "urn:rio-productionline1-test",
+                            "OpcEndpointUrl": "opc.tcp://rio-productionline1-test:51211",
+                            "Simulation": {
+                                "Type": "test",
+                                "Args": "100 10 no"
+                            },
+                            "Kpi1": {
+                                "Minimum": 90,
+                                "Target": 180,
+                                "Maximum": 360
+                            },
+                            "Kpi2": {
+                                "Minimum": 25,
+                                "Target": 50,
+                                "Maximum": 100
+                            },
+                            "OpcNodes": [
+                                {
+                                    "ExpandedNodeId": "nsu=http://microsoft.com/Opc/CfStation/;s=NumberOfManufacturedProducts",
+                                    "Relevance": [
+                                        "Kpi1",
+                                        "OeeQuality_Good"
+                                    ],
+                                    "OpCode": "SubMaxMin"
+                                },
+                                {
+                                    "ExpandedNodeId": "nsu=http://microsoft.com/Opc/CfStation/;s=NumberOfDiscardedProducts",
+                                    "Relevance": [
+                                        "OeeQuality_Bad"
+                                    ],
+                                    "OpCode": "SubMaxMin"
+                                },
+                                {
+                                    "ExpandedNodeId": "nsu=http://microsoft.com/Opc/CfStation/;s=FaultyTime",
+                                    "Relevance": [
+                                        "OeeAvailability_Fault"
+                                    ],
+                                    "OpCode": "Sum",
+                                    "Units": "ms"
+                                },
+                                {
+                                    "SymbolicName": "RunningTime",
+                                    "Relevance": [
+                                        "OeeAvailability_Running"
+                                    ],
+                                    "OpCode": "Timespan",
+                                    "Visible": false,
+                                    "Units": "ms"
+                                },
+                                {
+                                    "ExpandedNodeId": "nsu=http://microsoft.com/Opc/CfStation/;s=EnergyConsumption",
+                                    "Relevance": [
+                                        "Kpi2"
+                                    ],
+                                    "OpCode": "Sum",
+                                    "Units": "kWh"
+                                },
+                                {
+                                    "ExpandedNodeId": "nsu=http://microsoft.com/Opc/CfStation/;s=ActualCycleTime",
+                                    "Relevance": [
+                                        "OeePerformance_Actual"
+                                    ],
+                                    "OpCode": "Avg",
+                                    "Units": "ms"
+                                },
+                                {
+                                    "ConstValue": 10000,
+                                    "SymbolicName": "IdealCycleTime",
+                                    "OpCode": "Const",
+                                    "Visible": false,
+                                    "Units": "ms",
+                                    "Relevance": [
+                                        "OeePerformance_Ideal"
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "Name": "Packaging #1",
+                            "Description": "Beam axle packaging station",
+                            "Image": "packing_station.png",
+                            "ImagePushpin": {
+                                "Top": 390,
+                                "Left": 560
+                            },
+                            "OpcApplicationUri": "urn:rio-productionline1-packaging",
+                            "OpcEndpointUrl": "opc.tcp://rio-productionline1-packaging:51212",
+                            "Simulation": {
+                                "Type": "packaging",
+                                "Args": "100 10 no"
+                            },
+                            "Kpi1": {
+                                "Minimum": 90,
+                                "Target": 180,
+                                "Maximum": 360
+                            },
+                            "Kpi2": {
+                                "Minimum": 25,
+                                "Target": 50,
+                                "Maximum": 100
+                            },
+                            "OpcNodes": [
+                                {
+                                    "ExpandedNodeId": "nsu=http://microsoft.com/Opc/CfStation/;s=NumberOfManufacturedProducts",
+                                    "Relevance": [
+                                        "Kpi1",
+                                        "OeeQuality_Good"
+                                    ],
+                                    "OpCode": "SubMaxMin"
+                                },
+                                {
+                                    "ExpandedNodeId": "nsu=http://microsoft.com/Opc/CfStation/;s=NumberOfDiscardedProducts",
+                                    "Relevance": [
+                                        "OeeQuality_Bad"
+                                    ],
+                                    "OpCode": "SubMaxMin"
+                                },
+                                {
+                                    "ExpandedNodeId": "nsu=http://microsoft.com/Opc/CfStation/;s=FaultyTime",
+                                    "Relevance": [
+                                        "OeeAvailability_Fault"
+                                    ],
+                                    "OpCode": "Sum",
+                                    "Units": "ms"
+                                },
+                                {
+                                    "SymbolicName": "RunningTime",
+                                    "Relevance": [
+                                        "OeeAvailability_Running"
+                                    ],
+                                    "OpCode": "Timespan",
+                                    "Visible": false,
+                                    "Units": "ms"
+                                },
+                                {
+                                    "ExpandedNodeId": "nsu=http://microsoft.com/Opc/CfStation/;s=EnergyConsumption",
+                                    "Relevance": [
+                                        "Kpi2"
+                                    ],
+                                    "OpCode": "Sum",
+                                    "Units": "kWh"
+                                },
+                                {
+                                    "ExpandedNodeId": "nsu=http://microsoft.com/Opc/CfStation/;s=ActualCycleTime",
+                                    "Relevance": [
+                                        "OeePerformance_Actual"
+                                    ],
+                                    "OpCode": "Avg",
+                                    "Units": "ms"
+                                },
+                                {
+                                    "ConstValue": 10000,
+                                    "SymbolicName": "IdealCycleTime",
+                                    "OpCode": "Const",
+                                    "Visible": false,
+                                    "Units": "ms",
+                                    "Relevance": [
+                                        "OeePerformance_Ideal"
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

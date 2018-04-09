@@ -1,4 +1,4 @@
-version: '2'
+version: '3'
 
 networks:
     default:
@@ -21,8 +21,8 @@ services:
         hostname: ${MES_HOSTNAME}
         volumes:
             - "cfx509certstores:/root/.dotnet/corefx/cryptography/x509stores"
-            - "${HOSTDIR}:/docker"
-        command: --lf /docker/${DOMAIN}-${PRODUCTIONLINE}-mes.log --as ${ASSEMBLY_ENDPOINT} --ts ${TEST_ENDPOINT} --ps ${PACKAGING_ENDPOINT} --tp /docker/trusted --rp /docker/rejected --ip /docker/issuers --to
+            - "${BINDSOURCE}:/d"
+        command: --lf /d/${DOMAIN}-${PRODUCTIONLINE}-mes.log --as ${ASSEMBLY_ENDPOINT} --ts ${TEST_ENDPOINT} --ps ${PACKAGING_ENDPOINT} --tp /d/trusted --rp /d/rejected --ip /d/issuer --to
 
     assembly:
         image: ${CFSTATION_CONTAINER}
@@ -31,10 +31,10 @@ services:
         hostname: ${ASSEMBLY_HOSTNAME}
         volumes:
             - "cfx509certstores:/root/.dotnet/corefx/cryptography/x509stores"
-            - "${HOSTDIR}:/docker"
+            - "${BINDSOURCE}:/d"
         expose: 
             - "${ASSEMBLY_PORT}"
-        command: --lf /docker/${DOMAIN}-${PRODUCTIONLINE}-assembly.log --pn ${ASSEMBLY_PORT} ${ASSEMBLY_GENERATEALERTS}  ${ASSEMBLY_CYCLETIME} ${ASSEMBLY_POWERCONSUMPTION} --tp /docker/trusted --rp /docker/rejected --ip /docker/issuers --to
+        command: --ll debug --lf /d/${DOMAIN}-${PRODUCTIONLINE}-assembly.log --pn ${ASSEMBLY_PORT} ${ASSEMBLY_GENERATEALERTS}  ${ASSEMBLY_CYCLETIME} ${ASSEMBLY_POWERCONSUMPTION} --tp /d/trusted --rp /d/rejected --ip /d/issuer --to
             
     test:
         image: ${CFSTATION_CONTAINER}
@@ -43,10 +43,10 @@ services:
         hostname: ${TEST_HOSTNAME}
         volumes:
             - "cfx509certstores:/root/.dotnet/corefx/cryptography/x509stores"
-            - "${HOSTDIR}:/docker"
+            - "${BINDSOURCE}:/d"
         expose: 
             - "${TEST_PORT}"
-        command: --lf /docker/${DOMAIN}-${PRODUCTIONLINE}-test.log --pn ${TEST_PORT} ${TEST_GENERATEALERTS}  ${TEST_CYCLETIME} ${TEST_POWERCONSUMPTION} --tp /docker/trusted --rp /docker/rejected --ip /docker/issuers --to
+        command: --lf /d/${DOMAIN}-${PRODUCTIONLINE}-test.log --pn ${TEST_PORT} ${TEST_GENERATEALERTS}  ${TEST_CYCLETIME} ${TEST_POWERCONSUMPTION} --tp /d/trusted --rp /d/rejected --ip /d/issuer --to
             
     packaging:
         image: ${CFSTATION_CONTAINER}
@@ -55,7 +55,7 @@ services:
         hostname: ${PACKAGING_HOSTNAME}
         volumes:
             - "cfx509certstores:/root/.dotnet/corefx/cryptography/x509stores"
-            - "${HOSTDIR}:/docker"
+            - "${BINDSOURCE}:/d"
         expose: 
             - "${PACKAGING_PORT}"
-        command: --lf /docker/${DOMAIN}-${PRODUCTIONLINE}-packaging.log --pn ${PACKAGING_PORT} ${PACKAGING_GENERATEALERTS}  ${PACKAGING_CYCLETIME} ${PACKAGING_POWERCONSUMPTION} --tp /docker/trusted --rp /docker/rejected --ip /docker/issuers --to
+        command: --lf /d/${DOMAIN}-${PRODUCTIONLINE}-packaging.log --pn ${PACKAGING_PORT} ${PACKAGING_GENERATEALERTS}  ${PACKAGING_CYCLETIME} ${PACKAGING_POWERCONSUMPTION} --tp /d/trusted --rp /d/rejected --ip /d/issuer --to

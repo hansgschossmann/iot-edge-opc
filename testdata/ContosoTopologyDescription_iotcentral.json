@@ -1,0 +1,193 @@
+{
+    "Version": 1,
+    "Image": "world.jpg",
+    "Factories": [
+        {
+            "Domain": "munich",
+            "Name": "Munich",
+            "Description": "Braking system",
+            "Location": {
+                "City": "Munich",
+                "Country": "Germany",
+                "Latitude": 48.13641,
+                "Longitude": 11.57754
+            },
+            "Image": "factory.png",
+            "Shopfloor": {
+                "Type": "Simulation"
+            },
+            "ProductionLines": [
+                {
+                    "Guid": "E8260A1A-DA12-473E-9955-B220B3985356",
+                    "Name": "Production Line 1",
+                    "Description": "Brake pads",
+                    "Image": "factory_floor.gif",
+                    "ImagePushpin": {
+                        "Top": 290,
+                        "Left": 425
+                    },
+                    "Stations": [
+                        {
+                            "Name": "Assembly",
+                            "Description": "Brake pad assembly station",
+                            "Image": "assembly_station.png",
+                            "ImagePushpin": {
+                                "Top": 370,
+                                "Left": 133
+                            },
+                            "OpcApplicationUri": "urn:munich-productionline1-assembly",
+                            "OpcEndpointUrl": "opc.tcp://munich-productionline1-assembly:51210",
+                            "Simulation": {
+                                "Type": "assembly",
+                                "Args": "200 6 yes"
+                            },
+                            "Kpi1": {
+                                "Minimum": 150,
+                                "Target": 300,
+                                "Maximum": 600
+                            },
+                            "Kpi2": {
+                                "Minimum": 50,
+                                "Target": 100,
+                                "Maximum": 200,
+                                "MinimumAlertActions": [
+                                    {
+                                        "Type": "None"
+                                    }
+                                ]
+                            },
+                            "OpcNodes": [
+                                {
+                                    "ExpandedNodeId": "nsu=http://microsoft.com/Opc/CfStation/;s=NumberOfManufacturedProducts",
+                                    "Relevance": [
+                                        "Kpi1",
+                                        "OeeQuality_Good"
+                                    ],
+                                    "OpCode": "SubMaxMin"
+                                },
+                                {
+                                    "ExpandedNodeId": "nsu=http://microsoft.com/Opc/CfStation/;s=NumberOfDiscardedProducts",
+                                    "Relevance": [
+                                        "OeeQuality_Bad"
+                                    ],
+                                    "OpCode": "SubMaxMin"
+                                },
+                                {
+                                    "ExpandedNodeId": "nsu=http://microsoft.com/Opc/CfStation/;s=FaultyTime",
+                                    "Relevance": [
+                                        "OeeAvailability_Fault"
+                                    ],
+                                    "OpCode": "Sum",
+                                    "Units": "ms"
+                                },
+                                {
+                                    "SymbolicName": "RunningTime",
+                                    "Relevance": [
+                                        "OeeAvailability_Running"
+                                    ],
+                                    "OpCode": "Timespan",
+                                    "Visible": false,
+                                    "Units": "ms"
+                                },
+                                {
+                                    "ExpandedNodeId": "nsu=http://microsoft.com/Opc/CfStation/;s=EnergyConsumption",
+                                    "Relevance": [
+                                        "Kpi2"
+                                    ],
+                                    "OpCode": "Sum",
+                                    "Units": "kWh"
+                                },
+                                {
+                                    "ExpandedNodeId": "nsu=http://microsoft.com/Opc/CfStation/;s=Pressure",
+                                    "OpCode": "Avg",
+                                    "Units": "mbar",
+                                    "Maximum": 5000,
+                                    "MaximumAlertActions": [
+                                        {
+                                            "Type": "CallOpcMethod",
+                                            "Description": "Open valve",
+                                            "Parameter": "ns=2;s=435, ns=2;s=424, opc.tcp://scada2194.munich0.corp.contoso:51210/UA/Munich/ProductionLine0/AssemblyStation"
+                                        },
+                                        {
+                                            "Type": "OpenWebPage",
+                                            "Description": "Open schematics",
+                                            "Parameter": "https://aka.ms/azureiot/connectedfactory/schematics"
+                                        }
+                                    ]
+                                },
+                                {
+                                    "ExpandedNodeId": "nsu=http://microsoft.com/Opc/CfStation/;s=ActualCycleTime",
+                                    "Relevance": [
+                                        "OeePerformance_Actual"
+                                    ],
+                                    "OpCode": "Avg",
+                                    "Units": "ms"
+                                },
+                                {
+                                    "ConstValue": 6000,
+                                    "SymbolicName": "IdealCycleTime",
+                                    "OpCode": "Const",
+                                    "Visible": false,
+                                    "Units": "ms",
+                                    "Relevance": [
+                                        "OeePerformance_Ideal"
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "Name": "Test",
+                            "Description": "Brake pad test station",
+                            "Image": "testing_station.png",
+                            "ImagePushpin": {
+                                "Top": 273,
+                                "Left": 303
+                            },
+                            "OpcApplicationUri": "urn:munich-productionline1-test",
+                            "OpcEndpointUrl": "opc.tcp://munich-productionline1-test:51211",
+                            "Simulation": {
+                                "Type": "test",
+                                "Args": "200 6 yes"
+                            },
+                            "Kpi1": {
+                                "Minimum": 150,
+                                "Target": 300,
+                                "Maximum": 600
+                            },
+                            "Kpi2": {
+                                "Minimum": 25,
+                                "Target": 50,
+                                "Maximum": 100
+                            }
+                        },
+                        {
+                            "Name": "Packaging",
+                            "Description": "Brake pad packaging station",
+                            "Image": "packing_station.png",
+                            "ImagePushpin": {
+                                "Top": 390,
+                                "Left": 560
+                            },
+                            "OpcApplicationUri": "urn:munich-productionline1-packaging",
+                            "OpcEndpointUrl": "opc.tcp://munich-productionline1-packaging:51212",
+                            "Simulation": {
+                                "Type": "packaging",
+                                "Args": "100 6 no"
+                            },
+                            "Kpi1": {
+                                "Minimum": 150,
+                                "Target": 300,
+                                "Maximum": 600
+                            },
+                            "Kpi2": {
+                                "Minimum": 25,
+                                "Target": 50,
+                                "Maximum": 100
+                            }
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

@@ -1,0 +1,20 @@
+version: '3'
+
+services:
+    publisher:
+        image: ${OPCPUBLISHER_CONTAINER}
+        restart: always
+        container_name: pub-${DOMAIN}
+        hostname: pub-${DOMAIN}
+        extra_hosts:
+            ${EXTRAHOSTS}
+        volumes:
+            - "cfx509certstores:/root/.dotnet/corefx/cryptography/x509stores"
+            - "${BINDSOURCE}:/d"
+        expose:
+            - "62222"
+        command: pub-${DOMAIN} --ll debug --pf /d/pn-${DOMAIN}.json ${TELEMETRYCONFIG_OPTION} --lf /d/${DOMAIN}-pub.log --domain ${DOMAIN} --di=60 --tp /d/trusted --rp /d/rejected --ip /d/issuer --to --ic
+
+volumes:
+    cfx509certstores:
+    cfappdata:

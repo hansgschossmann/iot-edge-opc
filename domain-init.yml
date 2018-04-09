@@ -1,4 +1,4 @@
-version: '2'
+version: '3'
 
 volumes:
     cfx509certstores:
@@ -12,24 +12,24 @@ services:
     publisher:
         image: ${OPCPUBLISHER_CONTAINER}
         restart: "no"
-        container_name: publisher-${DOMAIN}
-        hostname: publisher-${DOMAIN}
+        container_name: pub-${DOMAIN}
+        hostname: pub-${DOMAIN}
         volumes:
             - "cfx509certstores:/root/.dotnet/corefx/cryptography/x509stores"
-            - "${HOSTDIR}:/docker"
+            - "${BINDSOURCE}:/d"
         expose:
             - "62222"
-        command: publisher-${DOMAIN} -c "${IOTHUB_CONNECTIONSTRING}" -i --pf /docker/publishednodes-${DOMAIN}.json --lf /docker/${DOMAIN}-publisher.log --domain ${DOMAIN} --di=60 --tp /docker/trusted --rp /docker/rejected --ip /docker/trusted --to
+        command: pub-${DOMAIN} -c "${IOTHUB_CONNECTIONSTRING}" -i --lf /d/${DOMAIN}-pub.log --domain ${DOMAIN} --di=60 --tp /d/trusted --rp /d/rejected --ip /d/issuer --to
            
     proxy:
         image: ${OPCPROXY_CONTAINER}
         restart: "no"
-        container_name: proxy-${DOMAIN}
-        hostname: proxy-${DOMAIN}
+        container_name: prx-${DOMAIN}
+        hostname: prx-${DOMAIN}
         volumes:
             - "cfx509certstores:/root/.dotnet/corefx/cryptography/x509stores"
-            - "${HOSTDIR}:/docker"
-        command: -w --domain ${DOMAIN} -c "${IOTHUB_CONNECTIONSTRING}" -i -l /docker/${DOMAIN}-proxy.log -D /docker/proxy-${DOMAIN}-cs.db
+            - "${BINDSOURCE}:/d"
+        command: -w --domain ${DOMAIN} -c "${IOTHUB_CONNECTIONSTRING}" -i -l /d/${DOMAIN}-prx.log -D /d/prx-${DOMAIN}-cs.db
 
 volumes:
     cfx509certstores:

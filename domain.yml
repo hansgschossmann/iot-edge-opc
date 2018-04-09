@@ -1,31 +1,31 @@
-version: '2'
+version: '3'
 
 services:
-    iot-edge-opc-publisher:
+    publisher:
         image: ${OPCPUBLISHER_CONTAINER}
         restart: always
-        container_name: publisher-${DOMAIN}
-        hostname: publisher-${DOMAIN}
+        container_name: pub-${DOMAIN}
+        hostname: pub-${DOMAIN}
         extra_hosts:
             ${EXTRAHOSTS}
         volumes:
             - "cfx509certstores:/root/.dotnet/corefx/cryptography/x509stores"
-            - "${HOSTDIR}:/docker"
+            - "${BINDSOURCE}:/d"
         expose:
             - "62222"
-        command: publisher-${DOMAIN} --pf /docker/publishednodes-${DOMAIN}.json --lf /docker/${DOMAIN}-publisher.log --domain ${DOMAIN} --di=60 --tp /docker/trusted --rp /docker/rejected --ip /docker/trusted --to
+        command: pub-${DOMAIN} --pf /d/pn-${DOMAIN}.json ${TELEMETRYCONFIG_OPTION} --lf /d/${DOMAIN}-pub.log --domain ${DOMAIN} --di=60 --tp /d/trusted --rp /d/rejected --ip /d/issuer --to
            
-    iot-edge-opc-proxy:
+    proxy:
         image: ${OPCPROXY_CONTAINER}
         restart: always
-        container_name: proxy-${DOMAIN}
-        hostname: proxy-${DOMAIN}
+        container_name: prx-${DOMAIN}
+        hostname: prx-${DOMAIN}
         extra_hosts:
             ${EXTRAHOSTS}
         volumes:
             - "cfx509certstores:/root/.dotnet/corefx/cryptography/x509stores"
-            - "${HOSTDIR}:/docker"
-        command: -w --domain ${DOMAIN} -l /docker/${DOMAIN}-proxy.log -D /docker/proxy-${DOMAIN}-cs.db
+            - "${BINDSOURCE}:/d"
+        command: -w --domain ${DOMAIN} -l /d/${DOMAIN}-prx.log -D /d/prx-${DOMAIN}-cs.db
 
 volumes:
     cfx509certstores:
