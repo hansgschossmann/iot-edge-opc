@@ -22,6 +22,8 @@ import requests
 ASSEMBLY_PORT = 51210
 TEST_PORT = 51211
 PACKAGING_PORT = 51212
+# todo remove
+#OPCPUBLISHER_CONTAINER_IMAGE='johanngnb:5000/iot-edge-opc-publisher:latest'
 OPCPUBLISHER_CONTAINER_IMAGE='iot-edge-opc-publisher:iotedge'
 OPCPROXY_CONTAINER_IMAGE='iot-edge-opc-proxy:1.0.4'
 CFMES_CONTAINER_IMAGE='azure-iot-connected-factory-cfmes:latest'
@@ -202,10 +204,11 @@ def createEdgeDomainConfiguration(domainName):
                 binds = []
                 for bind in serviceConfig['volumes']:
                     # on Docker for Windows the API interface used by the edgeAgent needs pipe syntax
-                    logging.info("bind to append: '{0}'".format(bind))
                     if not _args.dockerpipesyntax and bind[1:2] == ':' and _targetPlatform in [ 'windows', 'wsl' ]:
                         bind = '//' + bind[0:1] + bind[2:]
-                    logging.info("bind to append: '{0}'".format(bind))
+                    # if a container is used, make it domain specific
+                    if bind[0:1] != '/':
+                        bind = '{0}_{1}'.format(domainName, bind)
                     binds.append(bind)
                 hostConfig['Binds'] = binds
             if 'extra_hosts' in serviceConfig:
@@ -310,6 +313,10 @@ def createEdgeDomainConfiguration(domainName):
     # todo add registry credential
     # iotedgectl login --address <your container registry address> --username <username> --password <password> 
     # todo use CA signed cert
+    initCmd = "docker volume create {0}_cfx509certstores".format(domainName)
+    _initScript.append(initCmd + '\n')
+    initCmd = "docker volume create {0}_cfappdata".format(domainName)
+    _initScript.append(initCmd + '\n')
     initCmd = 'iotedgectl setup --connection-string "{0}" --auto-cert-gen-force-no-passwords {1}'.format(edgeDeviceConnectionString, '--runtime-log-level debug' if (_args.loglevel.lower() == 'debug') else '')
     _initScript.append(_initScriptCmdPrefix + initCmd + _initScriptCmdPostfix + '\n')
     initCmd = "docker pull {0}".format(_opcProxyContainer)
@@ -317,13 +324,14 @@ def createEdgeDomainConfiguration(domainName):
     initCmd = "docker-compose -p {0} -f {1} up".format(domainName, ymlFileName)
     _initScript.append(_initScriptCmdPrefix + initCmd + _initScriptCmdPostfix + '\n')
     # deinit commands are written in reversed order
+    deinitCmd = "iotedgectl uninstall"
+    _deinitScript.append(_deinitScriptCmdPrefix + deinitCmd + _deinitScriptCmdPostfix + '\n')
     deinitCmd = "docker volume rm {0}_cfappdata".format(domainName)
     _deinitScript.append(_deinitScriptCmdPrefix + deinitCmd + _deinitScriptCmdPostfix + '\n')
     deinitCmd = "docker volume rm {0}_cfx509certstores".format(domainName)
     _deinitScript.append(_deinitScriptCmdPrefix + deinitCmd + _deinitScriptCmdPostfix + '\n')
+    # todo the certstore volume can not be cleaned up yet
     deinitCmd = "docker-compose -p {0} -f {1} down".format(domainName, ymlFileName)
-    _deinitScript.append(_deinitScriptCmdPrefix + deinitCmd + _deinitScriptCmdPostfix + '\n')
-    deinitCmd = "iotedgectl uninstall"
     _deinitScript.append(_deinitScriptCmdPrefix + deinitCmd + _deinitScriptCmdPostfix + '\n')
 
 
@@ -344,6 +352,10 @@ def createNonEdgeDomainConfiguration(domainName):
                 line = line.replace('${IOTHUB_CONNECTIONSTRING}', _iotHubOwnerConnectionString)
                 setupOutFile.write(line)
     # generate script
+    initCmd = "docker volume create {0}_cfx509certstores".format(domainName)
+    _initScript.append(initCmd + '\n')
+    initCmd = "docker volume create {0}_cfappdata".format(domainName)
+    _initScript.append(initCmd + '\n')
     initCmd = "docker pull {0}".format(_opcProxyContainer)
     _initScript.append(initCmd + '\n')
     initCmd = "docker pull {0}".format(_opcPublisherContainer)
@@ -355,6 +367,7 @@ def createNonEdgeDomainConfiguration(domainName):
     _deinitScript.append(_deinitScriptCmdPrefix + deinitCmd + _deinitScriptCmdPostfix + '\n')
     deinitCmd = "docker volume rm {0}_cfx509certstores".format(domainName)
     _deinitScript.append(_deinitScriptCmdPrefix + deinitCmd + _deinitScriptCmdPostfix + '\n')
+    # todo the certstore volume can not be cleaned up yet
     deinitCmd = "docker-compose -p {0} -f {1} down".format(domainName, ymlFileName)
     _deinitScript.append(_deinitScriptCmdPrefix + deinitCmd + _deinitScriptCmdPostfix + '\n')
 
@@ -414,6 +427,10 @@ def createIotCentralDomainConfiguration(domainName):
                 line = line.replace('${IOTCENTRAL_CONNECTIONSTRING}', _args.iotcentralcs)
                 setupOutFile.write(line)
     # generate script
+    initCmd = "docker volume create {0}_cfx509certstores".format(domainName)
+    _initScript.append(initCmd + '\n')
+    initCmd = "docker volume create {0}_cfappdata".format(domainName)
+    _initScript.append(initCmd + '\n')
     initCmd = "docker pull {0}".format(_opcPublisherContainer)
     _initScript.append(initCmd + '\n')
     initCmd = "docker-compose -p {0} -f {1} up".format(domainName, ymlFileName)
@@ -423,9 +440,9 @@ def createIotCentralDomainConfiguration(domainName):
     _deinitScript.append(_deinitScriptCmdPrefix + deinitCmd + _deinitScriptCmdPostfix + '\n')
     deinitCmd = "docker volume rm {0}_cfx509certstores".format(domainName)
     _deinitScript.append(_deinitScriptCmdPrefix + deinitCmd + _deinitScriptCmdPostfix + '\n')
+    # todo the certstore volume can not be cleaned up yet
     deinitCmd = "docker-compose -p {0} -f {1} down".format(domainName, ymlFileName)
     _deinitScript.append(_deinitScriptCmdPrefix + deinitCmd + _deinitScriptCmdPostfix + '\n')
-
 
     #
     # create everything to start all required components for the domain

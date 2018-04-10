@@ -29,8 +29,5 @@ services:
         volumes:
             - "cfx509certstores:/root/.dotnet/corefx/cryptography/x509stores"
             - "${BINDSOURCE}:/d"
-        command: -w --domain ${DOMAIN} -c "${IOTHUB_CONNECTIONSTRING}" -i -l /d/${DOMAIN}-prx.log -D /d/prx-${DOMAIN}-cs.db
+        command: --domain ${DOMAIN} -c "${IOTHUB_CONNECTIONSTRING}" -i -l /d/${DOMAIN}-prx.log -D /d/prx-${DOMAIN}-cs.db
 
-volumes:
-    cfx509certstores:
-    cfappdata:

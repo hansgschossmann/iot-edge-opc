@@ -21,6 +21,3 @@ services:
             - "62222"
         command: pub-${DOMAIN} --dc "${IOTCENTRAL_CONNECTIONSTRING}" -i --lf /d/${DOMAIN}-pub.log --domain ${DOMAIN} --di=60 --tp /d/trusted --rp /d/rejected --ip /d/issuer --to --ic
            
-volumes:
-    cfx509certstores:
-    cfappdata:

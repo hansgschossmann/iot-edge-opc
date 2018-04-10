@@ -1,5 +1,13 @@
 version: '3'
 
+volumes:
+    cfx509certstores:
+        external:
+            name: ${DOMAIN}_cfx509certstores
+    cfappdata:
+        external:
+            name: ${DOMAIN}_cfappdata
+
 services:
     publisher:
         image: ${OPCPUBLISHER_CONTAINER}
@@ -25,8 +33,5 @@ services:
         volumes:
             - "cfx509certstores:/root/.dotnet/corefx/cryptography/x509stores"
             - "${BINDSOURCE}:/d"
-        command: -w --domain ${DOMAIN} -l /d/${DOMAIN}-prx.log -D /d/prx-${DOMAIN}-cs.db
+        command: -l /d/${DOMAIN}-prx.log -D /d/prx-${DOMAIN}-cs.db --domain ${DOMAIN} 
 
-volumes:
-    cfx509certstores:
-    cfappdata:

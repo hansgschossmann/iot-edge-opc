@@ -1,5 +1,13 @@
 version: '3'
 
+volumes:
+    cfx509certstores:
+        external:
+            name: ${DOMAIN}_cfx509certstores
+    cfappdata:
+        external:
+            name: ${DOMAIN}_cfappdata
+
 services:
     publisher:
         image: ${OPCPUBLISHER_CONTAINER}
@@ -14,7 +22,3 @@ services:
         expose:
             - "62222"
         command: pub-${DOMAIN} --ll debug --pf /d/pn-${DOMAIN}.json ${TELEMETRYCONFIG_OPTION} --lf /d/${DOMAIN}-pub.log --domain ${DOMAIN} --di=60 --tp /d/trusted --rp /d/rejected --ip /d/issuer --to --ic
-
-volumes:
-    cfx509certstores:
-    cfappdata:
