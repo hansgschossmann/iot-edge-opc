@@ -74,7 +74,8 @@ Here is a sample command line, which will generate scripts to create factories, 
 
 This will generate scripts in the subdirectory out of your current directory.
 
-To start ingesting data into Connectedfactory change to the out directory and run:
+To start ingesting data into Connectedfactory change to
+ the out directory and run:
 - init-opcedge, to init all required components.
 - start-opcedge, to run IoTEdge as well as all Cf factories and domains as configured.
 

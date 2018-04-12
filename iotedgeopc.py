@@ -22,8 +22,7 @@ import requests
 ASSEMBLY_PORT = 51210
 TEST_PORT = 51211
 PACKAGING_PORT = 51212
-# todo remove
-#OPCPUBLISHER_CONTAINER_IMAGE='johanngnb:5000/iot-edge-opc-publisher:latest'
+
 OPCPUBLISHER_CONTAINER_IMAGE='iot-edge-opc-publisher:iotedge'
 OPCPROXY_CONTAINER_IMAGE='iot-edge-opc-proxy:1.0.4'
 CFMES_CONTAINER_IMAGE='azure-iot-connected-factory-cfmes:latest'
@@ -189,7 +188,8 @@ def createEdgeDomainConfiguration(domainName):
                 createOptions['Env'] = env
             if 'command' in serviceConfig:
                 cmdList = []
-                cmdList.append(serviceConfig['command'])
+                cmdArgs = filter(lambda arg: arg.strip() != '', serviceConfig['command'].split(" "))
+                cmdList.extend(cmdArgs)
                 createOptions['Cmd'] = cmdList
             hostConfig = {}
             if 'expose' in serviceConfig:
