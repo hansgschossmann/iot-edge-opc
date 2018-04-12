@@ -25,6 +25,7 @@ PACKAGING_PORT = 51212
 
 OPCPUBLISHER_CONTAINER_IMAGE='iot-edge-opc-publisher:iotedge'
 OPCPROXY_CONTAINER_IMAGE='iot-edge-opc-proxy:1.0.4'
+OPCGDS_CONTAINER_IMAGE='mregen/edgegds:latest'
 CFMES_CONTAINER_IMAGE='azure-iot-connected-factory-cfmes:latest'
 CFSTATION_CONTAINER_IMAGE='azure-iot-connected-factory-cfsta:latest'
 
@@ -41,6 +42,7 @@ _iotHubOwnerConnectionString = ''
 _hostDirHost = ''
 _opcPublisherContainer = OPCPUBLISHER_CONTAINER_IMAGE
 _opcProxyContainer = OPCPROXY_CONTAINER_IMAGE
+_opcGdsContainer = OPCGDS_CONTAINER_IMAGE
 _cfMesContainer = CFMES_CONTAINER_IMAGE
 _cfStationContainer = CFSTATION_CONTAINER_IMAGE
 _edgeDomain = ''
@@ -158,8 +160,9 @@ def createEdgeDomainConfiguration(domainName):
             pass
         with open('{0}/domain.yml'.format(_scriptDir), 'r') as setupTemplate, open(ymlOutFileName, 'w+') as setupOutFile:
             for line in setupTemplate:
-                line = line.replace('${OPCPROXY_CONTAINER}', _opcProxyContainer)
                 line = line.replace('${OPCPUBLISHER_CONTAINER}', _opcPublisherContainer)
+                line = line.replace('${OPCPROXY_CONTAINER}', _opcProxyContainer)
+                line = line.replace('${OPCGDS_CONTAINER}', _opcGdsContainer)
                 line = line.replace('${TELEMETRYCONFIG_OPTION}', telemetryConfigOption)
                 line = line.replace('${DOMAIN}', domainName)
                 line = line.replace('${BINDSOURCE}', _dockerBindSource)
@@ -193,12 +196,27 @@ def createEdgeDomainConfiguration(domainName):
                 createOptions['Cmd'] = cmdList
             hostConfig = {}
             if 'expose' in serviceConfig:
-                portBindings = {}
-                hostPort = []
+                exposedPorts = {}
                 for port in serviceConfig['expose']:
-                    portProto = port + '/tcp'
-                    hostPort.append( { "HostPort": str(port) } )
-                    portBindings[portProto] = hostPort
+                    exposedPort = str(port) + "/tcp"
+                    exposedPorts[exposedPort] = '{}' 
+                createOptions['ExposedPorts'] = exposedPorts       
+            if 'ports' in serviceConfig:
+                portBindings = {}
+                for port in serviceConfig['ports']:
+                    hostPorts = []
+                    if '-' in port or '/' in port:
+                        logging.fatal("For ports (in file domain.yml) only the single port short syntax without protocol (tcp is used) is supported (HOSTPORT:CONTAINERPORT)")
+                        sys.exit(1)
+                    if ':' in port:
+                        delim = port.find(':')
+                        hostPort = port[:delim]
+                        containerPort = port[delim+1:] + '/tcp'
+                    else:
+                        hostPort = port
+                        containerPort = port + '/tcp'
+                    hostPorts.append( { "HostPort": str(hostPort) } )
+                    portBindings[containerPort] = hostPorts
                 hostConfig['PortBindings'] = portBindings
             if 'volumes' in serviceConfig:
                 binds = []
@@ -385,8 +403,9 @@ def createNonEdgeDomainConfiguration(domainName):
         pass
     with open('{0}/domain.yml'.format(_scriptDir), 'r') as template, open(ymlOutFileName, 'w+') as outFile:
         for line in template:
-            line = line.replace('${OPCPROXY_CONTAINER}', _opcProxyContainer)
             line = line.replace('${OPCPUBLISHER_CONTAINER}', _opcPublisherContainer)
+            line = line.replace('${OPCPROXY_CONTAINER}', _opcProxyContainer)
+            line = line.replace('${OPCGDS_CONTAINER}', _opcGdsContainer)
             line = line.replace('${TELEMETRYCONFIG_OPTION}', telemetryConfigOption)
             line = line.replace('${DOMAIN}', domainName)
             line = line.replace('${BINDSOURCE}', _dockerBindSource)
@@ -394,13 +413,17 @@ def createNonEdgeDomainConfiguration(domainName):
             outFile.write(line)
 
     # generate script
+    startCmd = "docker pull {0}".format(_opcPublisherContainer)
+    _startScript.append(startCmd + '\n')
     startCmd = "docker pull {0}".format(_opcProxyContainer)
     _startScript.append(startCmd + '\n')
-    startCmd = "docker pull {0}".format(_opcPublisherContainer)
+    startCmd = "docker pull {0}".format(_opcGdsContainer)
+    _startScript.append(startCmd + '\n')
+    startCmd = "docker rm pub-{0}".format(domainName)
     _startScript.append(startCmd + '\n')
     startCmd = "docker rm prx-{0}".format(domainName)
     _startScript.append(startCmd + '\n')
-    startCmd = "docker rm pub-{0}".format(domainName)
+    startCmd = "docker rm gds-{0}".format(domainName)
     _startScript.append(startCmd + '\n')
     startCmd = "docker-compose -p {0} -f {1} up".format(domainName, ymlFileName)
     _startScript.append(_startScriptCmdPrefix + startCmd + _startScriptCmdPostfix + '\n')
@@ -893,9 +916,11 @@ else:
 _cfMesContainer = CFMES_CONTAINER_IMAGE if '/' in CFMES_CONTAINER_IMAGE else '{0}/{1}'.format(_args.dockerregistry, CFMES_CONTAINER_IMAGE)
 _cfStationContainer = CFSTATION_CONTAINER_IMAGE if '/' in CFSTATION_CONTAINER_IMAGE else '{0}/{1}'.format(_args.dockerregistry, CFSTATION_CONTAINER_IMAGE)
 _opcProxyContainer = OPCPROXY_CONTAINER_IMAGE if '/' in OPCPROXY_CONTAINER_IMAGE else '{0}/{1}'.format(_args.dockerregistry, OPCPROXY_CONTAINER_IMAGE)
+_opcGdsContainer = OPCGDS_CONTAINER_IMAGE if '/' in OPCGDS_CONTAINER_IMAGE else '{0}/{1}'.format(_args.dockerregistry, OPCGDS_CONTAINER_IMAGE)
 _opcPublisherContainer = OPCPUBLISHER_CONTAINER_IMAGE if '/' in OPCPUBLISHER_CONTAINER_IMAGE else '{0}/{1}'.format(_args.dockerregistry, OPCPUBLISHER_CONTAINER_IMAGE)
 logging.info("Using OpcPublisher container: '{0}'".format(_opcPublisherContainer))
 logging.info("Using OpcProxy container: '{0}'".format(_opcProxyContainer))
+logging.info("Using OpcGds container: '{0}'".format(_opcGdsContainer))
 logging.info("Using CfMes container: '{0}'".format(_cfMesContainer))
 logging.info("Using CfStation container: '{0}'".format(_cfStationContainer))
 

@@ -19,7 +19,7 @@ services:
         volumes:
             - "cfx509certstores:/root/.dotnet/corefx/cryptography/x509stores"
             - "${BINDSOURCE}:/d"
-        expose:
+        ports:
             - "62222"
         command: pub-${DOMAIN} --pf /d/pn-${DOMAIN}.json ${TELEMETRYCONFIG_OPTION} --lf /d/${DOMAIN}-pub.log --domain ${DOMAIN} --di=60 --tp /d/trusted --rp /d/rejected --ip /d/issuer --to
            
@@ -34,4 +34,17 @@ services:
             - "cfx509certstores:/root/.dotnet/corefx/cryptography/x509stores"
             - "${BINDSOURCE}:/d"
         command: -l /d/${DOMAIN}-prx.log -D /d/prx-${DOMAIN}-cs.db --domain ${DOMAIN} 
+
+    gds:
+        image: ${OPCGDS_CONTAINER}
+        restart: always
+        container_name: gds-${DOMAIN}
+        hostname: gds-${DOMAIN}
+        extra_hosts:
+            ${EXTRAHOSTS}
+        volumes:
+            - "cfx509certstores:/root/.dotnet/corefx/cryptography/x509stores"
+            - "${BINDSOURCE}:/d"
+        ports:
+            - "58850"
 
