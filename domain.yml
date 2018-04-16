@@ -33,7 +33,7 @@ services:
         volumes:
             - "cfx509certstores:/root/.dotnet/corefx/cryptography/x509stores"
             - "${BINDSOURCE}:/d"
-        command: -l /d/${DOMAIN}-prx.log -D /d/prx-${DOMAIN}-cs.db --domain ${DOMAIN} 
+        command: -l /d/${DOMAIN}-prx.log -c "${IOTHUB_CONNECTIONSTRING}" -D /d/prx-${DOMAIN}-cs.db --domain ${DOMAIN} 
 
     gds:
         image: ${OPCGDS_CONTAINER}
@@ -48,3 +48,9 @@ services:
         ports:
             - "58850"
 
+    twin:
+        image: ${OPCTWIN_CONTAINER}
+        restart: always
+        container_name: twin-${DOMAIN}
+        hostname: twin-${DOMAIN}
+        command: ${OPCTWIN_DEVICECONNECTIONSTRING_OPTION}

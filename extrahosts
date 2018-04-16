@@ -1,0 +1,2 @@
+# Add for each server the OPC modules should access a hostname/IP address mapping in hosts syntax.
+127.0.0.1 localhost

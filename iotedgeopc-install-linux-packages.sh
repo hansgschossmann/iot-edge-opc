@@ -12,15 +12,27 @@ apt-get update
 
 echo "install utilities"
 apt-get install apt-transport-https ca-certificates curl software-properties-common -y
+
 echo "install docker"
+apt-get remove docker docker-engine docker.io
 apt-get install docker-ce -y
+
 echo "install docker-compose"
-apt-get install docker-compose -y
+#apt-get install docker-compose -y
+apt-get remove docker-compose
+curl -L https://github.com/docker/compose/releases/download/1.21.0/docker-compose-$(uname -s)-$(uname -m) -o /usr/local/bin/docker-compose
+chmod +x /usr/local/bin/docker-compose
+
 echo "install azure cli"
+apt-get remove azure-cli
 apt-get install azure-cli -y
+
 echo "install iot extension"
 az extension add --name azure-cli-iot-ext
+
 echo "install python and pip"
+apt-get remove python
+apt-get remove python-pip
 apt-get install python -y
 apt-get install python-pip -y
 

@@ -27,17 +27,17 @@ All scenarios (except iotcsim) will use IoTEdge as runtime environment for the O
 # Usage of `iotedgeopc.py`
 The `iotedgeopc.py`script could be used in cross platform fashion. To use it this way, just use the `--targetplatform` parameter and specify your target platform. In this case you need to copy all scripts and configuration files to your target platform.
 
+When using with the `--targetplatform` parameter you still need to do the system preparation as outlined below on your targetsystem.
+
 ## WSL
 Prepare your WSL system by running:
-    source iotedgeopc-prerequisites.sh
+    source iotedgeopc-install-prerequisites.sh
 Now you can run the generation script:
 python iotedgeopc.py .....
 
 ## Ubuntu as non root
-Prepare your system by running:
-    chmod +x iotedgeopc-prerequisites.h
-    chmod +x iotedgeopc-linux-packages.sh
-    sudo ./iotedgeopc-prerequisites.sh
+Prepare your system by chmod'ing all .sh files with +x and running:
+    sudo ./iotedgeopc-install-prerequisites.sh
 If you use the --hostdir parameter, you need to create the directory and chown it.
 Now you can run the generation script:
 python iotedgeopc.py .....
@@ -51,19 +51,19 @@ python iotedgeopc.py .....
 # Running the generated scripts on your target platform
 Before you run the generated scripts on your target platform:
 - in a cross platform scenario, ensure you have copied the generated scripts and configuration files to the correct locations on your target platform
-- on WSL/Linux, please run "source target-prerequisites.sh"
+- on WSL/Linux, please run "source target-install-prerequisites.sh"
 - on Windows, please install docker
 
-Then change to the directory you have copied the scripts to and run:
+Then change to the directory you have copied the scripts to and run (use sudo on Ubuntu):
 - init-opcedge, to initialize the required components
 - start-opcedge, to start ingesteing telemetry for your usage scenario
 
-To stop the telemetry ingest run:
+To stop the telemetry ingest run (use sudo on Ubuntu):
 - stop-iotedge
 
 You could start and stop the ingestion as often as you like.
 
-To deinitialze run:
+To deinitialze run (use sudo on Ubuntu):
 - deinit-iotedge
 
 # Connectedfactory simulation (cfsim)

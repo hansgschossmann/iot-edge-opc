@@ -26,6 +26,7 @@ PACKAGING_PORT = 51212
 OPCPUBLISHER_CONTAINER_IMAGE='iot-edge-opc-publisher:iotedge'
 OPCPROXY_CONTAINER_IMAGE='iot-edge-opc-proxy:1.0.4'
 OPCGDS_CONTAINER_IMAGE='mregen/edgegds:latest'
+OPCTWIN_CONTAINER_IMAGE='marcschier/iot-opc-twin-edge-service:latest'
 CFMES_CONTAINER_IMAGE='azure-iot-connected-factory-cfmes:latest'
 CFSTATION_CONTAINER_IMAGE='azure-iot-connected-factory-cfsta:latest'
 
@@ -43,10 +44,12 @@ _hostDirHost = ''
 _opcPublisherContainer = OPCPUBLISHER_CONTAINER_IMAGE
 _opcProxyContainer = OPCPROXY_CONTAINER_IMAGE
 _opcGdsContainer = OPCGDS_CONTAINER_IMAGE
+_opcTwinContainer = OPCTWIN_CONTAINER_IMAGE
 _cfMesContainer = CFMES_CONTAINER_IMAGE
 _cfStationContainer = CFSTATION_CONTAINER_IMAGE
 _edgeDomain = ''
 _dockerBindSource = ''
+_outdirConfig = ''
 
 # command line parsing
 parser = argparse.ArgumentParser(description="Generates and if requested start the shopfloor simulation of Connectedfactory")
@@ -149,6 +152,7 @@ def createEdgeDomainConfiguration(domainName):
     
     if createDeployment:
         logging.info("Creating deployment '{0}'".format(deploymentName))
+        twinService = False
         # patch the template to create a docker compose configuration
         ymlFileName = '{0}.yml'.format(domainName)
         ymlOutFileName = '{0}/{1}'.format(_args.outdir, ymlFileName)
@@ -158,12 +162,15 @@ def createEdgeDomainConfiguration(domainName):
                 telemetryConfigOption = '--tc /d/tc-{0}.json'.format(domainName)
         except AttributeError:
             pass
-        with open('{0}/domain.yml'.format(_scriptDir), 'r') as setupTemplate, open(ymlOutFileName, 'w+') as setupOutFile:
+        with open('{0}/domain.yml'.format(_scriptDir), 'r') as setupTemplate, open(ymlOutFileName, 'w+', newline=_targetNewline) as setupOutFile:
             for line in setupTemplate:
                 line = line.replace('${OPCPUBLISHER_CONTAINER}', _opcPublisherContainer)
                 line = line.replace('${OPCPROXY_CONTAINER}', _opcProxyContainer)
                 line = line.replace('${OPCGDS_CONTAINER}', _opcGdsContainer)
+                line = line.replace('${OPCTWIN_CONTAINER}', _opcTwinContainer)
                 line = line.replace('${TELEMETRYCONFIG_OPTION}', telemetryConfigOption)
+                line = line.replace('${IOTHUB_CONNECTIONSTRING}', _iotHubOwnerConnectionString)
+                line = line.replace('${OPCTWIN_DEVICECONNECTIONSTRING_OPTION}', '')
                 line = line.replace('${DOMAIN}', domainName)
                 line = line.replace('${BINDSOURCE}', _dockerBindSource)
                 line = line.replace('${EXTRAHOSTS}', "".join(_extraHosts))
@@ -189,7 +196,7 @@ def createEdgeDomainConfiguration(domainName):
                 for envVar in serviceConfig['environment']:
                     env.append('"{0}"'.format(envVar))
                 createOptions['Env'] = env
-            if 'command' in serviceConfig:
+            if 'command' in serviceConfig and serviceConfig['command'] is not None:
                 cmdList = []
                 cmdArgs = filter(lambda arg: arg.strip() != '', serviceConfig['command'].split(" "))
                 cmdList.extend(cmdArgs)
@@ -229,7 +236,7 @@ def createEdgeDomainConfiguration(domainName):
                         bind = '{0}_{1}'.format(domainName, bind)
                     binds.append(bind)
                 hostConfig['Binds'] = binds
-            if 'extra_hosts' in serviceConfig:
+            if 'extra_hosts' in serviceConfig and serviceConfig['extra_hosts']:
                 extraHosts = []
                 for extraHost in serviceConfig['extra_hosts']:
                     extraHosts.append(extraHost)
@@ -238,12 +245,26 @@ def createEdgeDomainConfiguration(domainName):
                 createOptions['HostConfig'] = hostConfig
             settings['createOptions'] = json.dumps(createOptions)
             moduleConfig['settings'] = settings
+            # map the service name to a domain specific service name
+            if service.lower() == 'publisher':
+                service = 'pub-{0}'.format(domainName)
+            elif service.lower() == 'proxy':
+                service = 'prx-{0}'.format(domainName)
+            elif service.lower() == 'gds':
+                service = 'gds-{0}'.format(domainName)
+            elif service.lower() == 'twin':
+                service = 'twin-{0}'.format(domainName)
+                twinService = True
             modulesConfig[service] = moduleConfig
 
         # create the deployment
-        with open('iot-edge-opc-deployment-content-template.json', 'r') as deploymentContentTemplateFile, open('{0}/{1}.json'.format(_args.outdir, deploymentName), 'w') as deploymentContentFile:
+        with open('iot-edge-opc-deployment-content-template.json', 'r') as deploymentContentTemplateFile, open('{0}/{1}.json'.format(_args.outdir, deploymentName), 'w', newline=_targetNewline) as deploymentContentFile:
             deploymentContent = json.loads(deploymentContentTemplateFile.read())
             deploymentContent['content']['moduleContent']['$edgeAgent']['properties.desired']['modules'] = modulesConfig
+            # set default properties for twin
+            if twinService:
+                deploymentContent['content']['moduleContent']['twin-{0}'.format(domainName)] = { 'properties.desired': {} }
+                deploymentContent['content']['moduleContent']['twin-{0}'.format(domainName)]['properties.desired'] = { 'Discovery': "Scan" }
             json.dump(deploymentContent, deploymentContentFile, indent=4)
         # todo enable when bool is supported for target condition
         #cmd = 'az iot edge deployment create --config-id {0} --hub-name {1}  --content {2}/{0}.json --target-condition "tags.opc=true and tags.domain=\'{3}\'"'.format(deploymentName, _args.iothubname, _args.outdir, domainName)
@@ -308,6 +329,14 @@ def createEdgeDomainConfiguration(domainName):
     edgeDeviceConnectionString = connectionStringJson['cs']
 
     # create script commands to start/stop IoTEdge
+    startCmd = "docker rm pub-{0}".format(domainName)
+    _startScript.append(startCmd + '\n')
+    startCmd = "docker rm prx-{0}".format(domainName)
+    _startScript.append(startCmd + '\n')
+    startCmd = "docker rm gds-{0}".format(domainName)
+    _startScript.append(startCmd + '\n')
+    startCmd = "docker rm twin-{0}".format(domainName)
+    _startScript.append(startCmd + '\n')
     startCmd = "iotedgectl start"
     _startScript.append(_startScriptCmdPrefix + startCmd + _startScriptCmdPostfix + '\n')
     # stop commands are written in reversed order
@@ -315,17 +344,17 @@ def createEdgeDomainConfiguration(domainName):
     _stopScript.append(_stopScriptCmdPrefix + stopCmd + _stopScriptCmdPostfix + '\n')
 
     #
-    # create all local initialization resources of the domain
+    # create all local initialization resources of the domaidn
     #
     # patch the init template to create a docker compose configuration
     ymlFileName = '{0}-edge-init.yml'.format(domainName)
     ymlOutFileName = '{0}/{1}'.format(_args.outdir, ymlFileName)
-    with open('{0}/domain-edge-init.yml'.format(_scriptDir), 'r') as setupTemplate, open(ymlOutFileName, 'w+') as setupOutFile:
+    with open('{0}/domain-edge-init.yml'.format(_scriptDir), 'r') as setupTemplate, open(ymlOutFileName, 'w+', newline=_targetNewline) as setupOutFile:
             for line in setupTemplate:
                 line = line.replace('${OPCPROXY_CONTAINER}', _opcProxyContainer)
+                line = line.replace('${IOTHUB_CONNECTIONSTRING}', _iotHubOwnerConnectionString)
                 line = line.replace('${DOMAIN}', domainName)
                 line = line.replace('${BINDSOURCE}', _dockerBindSource)
-                line = line.replace('${IOTHUB_CONNECTIONSTRING}', _iotHubOwnerConnectionString)
                 setupOutFile.write(line)
     # generate script
     # todo add registry credential
@@ -361,7 +390,7 @@ def createNonEdgeDomainConfiguration(domainName):
     # patch the init template to create a docker compose configuration
     ymlFileName = '{0}-init.yml'.format(domainName)
     ymlOutFileName = '{0}/{1}'.format(_args.outdir, ymlFileName)
-    with open('{0}/domain-init.yml'.format(_scriptDir), 'r') as setupTemplate, open(ymlOutFileName, 'w+') as setupOutFile:
+    with open('{0}/domain-init.yml'.format(_scriptDir), 'r') as setupTemplate, open(ymlOutFileName, 'w+', newline=_targetNewline) as setupOutFile:
             for line in setupTemplate:
                 line = line.replace('${OPCPROXY_CONTAINER}', _opcProxyContainer)
                 line = line.replace('${OPCPUBLISHER_CONTAINER}', _opcPublisherContainer)
@@ -389,6 +418,54 @@ def createNonEdgeDomainConfiguration(domainName):
     deinitCmd = "docker-compose -p {0} -f {1} down".format(domainName, ymlFileName)
     _deinitScript.append(_deinitScriptCmdPrefix + deinitCmd + _deinitScriptCmdPostfix + '\n')
 
+    # the twin needs a device to report scanner results create it
+    deviceId = 'iot-opc-twin-{0}'.format(domainName)
+    logging.info("Check if device '{0}' already exists".format(deviceId))
+    cmd = "az iot hub device-identity show --hub-name {0} --device-id {1}".format(_args.iothubname, deviceId)
+    deviceShowResult = os.popen(cmd).read()
+    createDevice = False
+    if not deviceShowResult:
+        createDevice = True
+    else:
+        if _args.force:
+            # delete device and trigger creation
+            logging.info("Device '{0}' found. Deleting it...".format(deviceId))
+            cmd = "az iot hub device-identity delete --hub-name {0} --device-id {1}".format(_args.iothubname, deviceId)
+            os.popen(cmd).read()
+            createDevice = True
+        else:
+            logging.info("Device '{0}' found. Using it...".format(deviceId))
+            logging.debug(json.dumps(json.loads(deviceShowResult), indent=4))
+
+    if createDevice:
+        logging.info("Creating device '{0}'".format(deviceId))
+        cmd = "az iot hub device-identity create --hub-name {0} --device-id {1}".format(_args.iothubname, deviceId)
+        deviceCreateResult = os.popen(cmd).read()
+        if not deviceCreateResult:
+            logging.critical("Can not create device. Exiting...")
+            sys.exit(1)
+        logging.debug(json.dumps(json.loads(deviceCreateResult), indent=4))
+
+        logging.info("Setting Discover mode for device '{0}'".format(deviceId))
+        cmd = 'az iot hub device-twin update --hub-name {0} --device-id {1} --set properties.desired.Discover="Scan"'.format(_args.iothubname, deviceId)
+        updatePropertiesResult = os.popen(cmd).read()
+        if not updatePropertiesResult:
+            logging.critical("Can not set properties for device. Exiting...")
+            sys.exit(1)
+        logging.debug(json.dumps(json.loads(updatePropertiesResult), indent=4))
+
+    # fetch device connection string
+    logging.info("Fetch connection string for device '{0}'".format(deviceId))
+    cmd = "az iot hub device-identity show-connection-string --hub-name {0} --device-id {1}".format(_args.iothubname, deviceId)
+    connectionStringResult = os.popen(cmd).read()
+    if not connectionStringResult:
+        logging.critical("Can not read connection string for device. Exiting...")
+        sys.exit(1)
+    connectionStringJson = json.loads(connectionStringResult)
+    logging.debug(json.dumps(connectionStringJson, indent=4))
+    opcTwinDeviceConnectionString = connectionStringJson['cs']
+    opcTwinDeviceConnectionStringOption = 'EdgeHubConnectionString="{0}"'.format(opcTwinDeviceConnectionString)
+
     #
     # create everything to start all required components for the domain
     #
@@ -401,12 +478,15 @@ def createNonEdgeDomainConfiguration(domainName):
             telemetryConfigOption = '--tc /d/tc-{0}.json'.format(domainName)
     except AttributeError:
         pass
-    with open('{0}/domain.yml'.format(_scriptDir), 'r') as template, open(ymlOutFileName, 'w+') as outFile:
+    with open('{0}/domain.yml'.format(_scriptDir), 'r') as template, open(ymlOutFileName, 'w+', newline=_targetNewline) as outFile:
         for line in template:
             line = line.replace('${OPCPUBLISHER_CONTAINER}', _opcPublisherContainer)
             line = line.replace('${OPCPROXY_CONTAINER}', _opcProxyContainer)
             line = line.replace('${OPCGDS_CONTAINER}', _opcGdsContainer)
+            line = line.replace('${OPCTWIN_CONTAINER}', _opcTwinContainer)
             line = line.replace('${TELEMETRYCONFIG_OPTION}', telemetryConfigOption)
+            line = line.replace('${IOTHUB_CONNECTIONSTRING}', _iotHubOwnerConnectionString)
+            line = line.replace('${OPCTWIN_DEVICECONNECTIONSTRING_OPTION}', opcTwinDeviceConnectionStringOption)
             line = line.replace('${DOMAIN}', domainName)
             line = line.replace('${BINDSOURCE}', _dockerBindSource)
             line = line.replace('${EXTRAHOSTS}', "".join(_extraHosts))
@@ -419,11 +499,15 @@ def createNonEdgeDomainConfiguration(domainName):
     _startScript.append(startCmd + '\n')
     startCmd = "docker pull {0}".format(_opcGdsContainer)
     _startScript.append(startCmd + '\n')
+    startCmd = "docker pull {0}".format(_opcTwinContainer)
+    _startScript.append(startCmd + '\n')
     startCmd = "docker rm pub-{0}".format(domainName)
     _startScript.append(startCmd + '\n')
     startCmd = "docker rm prx-{0}".format(domainName)
     _startScript.append(startCmd + '\n')
     startCmd = "docker rm gds-{0}".format(domainName)
+    _startScript.append(startCmd + '\n')
+    startCmd = "docker rm twin-{0}".format(domainName)
     _startScript.append(startCmd + '\n')
     startCmd = "docker-compose -p {0} -f {1} up".format(domainName, ymlFileName)
     _startScript.append(_startScriptCmdPrefix + startCmd + _startScriptCmdPostfix + '\n')
@@ -442,7 +526,7 @@ def createIotCentralDomainConfiguration(domainName):
     # patch the init template to create a docker compose configuration
     ymlFileName = '{0}-init.yml'.format(domainName)
     ymlOutFileName = '{0}/{1}'.format(_args.outdir, ymlFileName)
-    with open('{0}/domain-iotcentral-init.yml'.format(_scriptDir), 'r') as setupTemplate, open(ymlOutFileName, 'w+') as setupOutFile:
+    with open('{0}/domain-iotcentral-init.yml'.format(_scriptDir), 'r') as setupTemplate, open(ymlOutFileName, 'w+', newline=_targetNewline) as setupOutFile:
             for line in setupTemplate:
                 line = line.replace('${OPCPUBLISHER_CONTAINER}', _opcPublisherContainer)
                 line = line.replace('${DOMAIN}', domainName)
@@ -479,7 +563,7 @@ def createIotCentralDomainConfiguration(domainName):
             telemetryConfigOption = '--tc /d/tc-{0}.json'.format(domainName)
     except AttributeError:
         pass
-    with open('{0}/domain-iotcentral.yml'.format(_scriptDir), 'r') as template, open(ymlOutFileName, 'w+') as outFile:
+    with open('{0}/domain-iotcentral.yml'.format(_scriptDir), 'r') as template, open(ymlOutFileName, 'w+', newline=_targetNewline) as outFile:
         for line in template:
             line = line.replace('${OPCPUBLISHER_CONTAINER}', _opcPublisherContainer)
             line = line.replace('${TELEMETRYCONFIG_OPTION}', telemetryConfigOption)
@@ -516,7 +600,7 @@ def generateCfProductionLine(factory, productionLine):
         domainNetworkName = '{0}_default'.format(domainName)
     ymlFileName = '{0}.yml'.format(domainProductionLineName)
     ymlOutFileName = '{0}/{1}'.format(_args.outdir, ymlFileName)
-    with open('{0}/cfproductionline.yml'.format(_scriptDir), 'r') as template, open(ymlOutFileName, 'w+') as outFile:
+    with open('{0}/cfproductionline.yml'.format(_scriptDir), 'r') as template, open(ymlOutFileName, 'w+', newline=_targetNewline) as outFile:
             for line in template:
                 line = line.replace('${CFMES_CONTAINER}', _cfMesContainer)
                 line = line.replace('${CFSTATION_CONTAINER}', _cfStationContainer)
@@ -614,8 +698,8 @@ def generateCfPublishedNodesConfig(factory):
         return
 
     # generate nodes file name
-    nodesFileName = 'pn-' + domainName + '.json'
-    nodesOutFileName = '{0}/pn-'.format(_args.outdir) + domainName + '.json'
+    nodesconfigFileName = 'pn-' + domainName + '.json'
+    nodesOutFileName = '{0}/{1}'.format(_args.outdir, nodesconfigFileName)
     
     # generate the configuration file
     publishedNodes = []
@@ -654,15 +738,32 @@ def generateCfPublishedNodesConfig(factory):
             stationObj['OpcNodes'] = opcExpandedNodeIdNodes
             publishedNodes.append(stationObj)
 
-    with open(nodesOutFileName, 'w') as nodesFile:
+    with open(nodesOutFileName, 'w', newline=_targetNewline) as nodesFile:
         if len(opcNodeIdNodes):
             json.dump(opcNodeIdNodes, nodesFile, indent=4)
         elif len(publishedNodes):
             json.dump(publishedNodes, nodesFile, indent=4)
         else:
-            logging.warning("There are not nodes configured to publish for domain {0}".format(domainName))
-    if os.path.exists(nodesOutFileName):
-            shutil.copyfile(nodesOutFileName, '{0}/{1}'.format(_hostDirHost, nodesFileName))
+            logging.warning("There are no nodes configured to publish for domain {0}".format(domainName))
+    # copy configuration files to the right directory if we are running on the target, otherwise copy it to the config file directory
+    if _args.targetplatform:
+        if os.path.exists(nodesOutFileName):
+                nodesconfigFileName = 'pn-' + domainName + '.json'
+                shutil.copyfile(nodesOutFileName, '{0}/{1}'.format(_outdirConfig, nodesconfigFileName))
+        try:
+            if _args.telemetryconfig:
+                telemetryconfigFileName = 'tc-' + domainName + '.json'
+                shutil.copyfile(_args.telemetryconfig, '{0}/{1}'.format(_outdirConfig, telemetryconfigFileName))
+        except AttributeError:
+            pass
+    else:
+        if os.path.exists(nodesOutFileName):
+            nodesconfigFileName = 'pn-' + domainName + '.json'
+            shutil.copyfile(nodesOutFileName, '{0}/{1}'.format(_hostDirHost, nodesconfigFileName))
+        if _args.telemetryconfig:
+            telemetryconfigFileName = 'tc-' + _args.domain + '.json'
+            shutil.copyfile(_args.telemetryconfig, '{0}/{1}'.format(_hostDirHost, telemetryconfigFileName))
+
 
 def validateTopology():
     global _topologyFileName
@@ -712,8 +813,8 @@ def getLocalIpAddress():
 
 def getExtraHosts():
     hosts = []
-    if os.path.exists("extrahosts") and os.path.isfile("extrahosts"):
-        with open("extrahosts", "r") as hostsfile:
+    if os.path.exists("{0}/extrahosts".format(_scriptDir)) and os.path.isfile("{0}/extrahosts".format(_scriptDir)):
+        with open("{0}/extrahosts".format(_scriptDir), "r") as hostsfile:
             hostlines = hostsfile.readlines()
         hostlines = [line.strip() for line in hostlines
                     if not line.startswith('#') and line.strip() != '']
@@ -738,7 +839,7 @@ def writeScript(scriptFileBaseName, scriptBuffer, reverse = False):
     logging.debug("Write '{0}'{1}".format(scriptFileName, ' in reversed order.' if reverse else '.'))
     if reverse:
         scriptBuffer = scriptBuffer[::-1]
-    with open(scriptFileName, 'w+') as scriptFile: 
+    with open(scriptFileName, 'w+', newline=_targetNewline) as scriptFile: 
         for command in scriptBuffer:
             scriptFile.write(command)   
     os.chmod(scriptFileName, os.stat(scriptFileName).st_mode | stat.S_IXOTH | stat.S_IXGRP | stat.S_IXUSR)
@@ -817,34 +918,38 @@ if not _args.targetplatform:
     else:
         logging.critical("OS is not supported. Exiting...")
         sys.exit(1)
+else:
+    _targetPlatform = _args.targetplatform
 logging.info("Using targetplatform '{0}'".format(_targetPlatform))
 
 if _targetPlatform == 'linux' or _targetPlatform == 'wsl':
-    _startScriptFileName = "start-edgeopc.sh"
-    _startScriptCmdPrefix = ""
-    _startScriptCmdPostfix = " &"
-    _stopScriptFileName = "stop-edgeopc.sh"
-    _stopScriptCmdPrefix = ""
-    _stopScriptCmdPostfix = ""
-    _initScriptFileName = "init-edgeopc.sh"
-    _initScriptCmdPrefix = ""
-    _initScriptCmdPostfix = " &"
-    _deinitScriptFileName = "deinit-edgeopc.sh"
-    _deinitScriptCmdPrefix = ""
-    _deinitScriptCmdPostfix = " &"
+    _startScriptFileName = 'start-edgeopc.sh'
+    _startScriptCmdPrefix = ''
+    _startScriptCmdPostfix = ' &'
+    _stopScriptFileName = 'stop-edgeopc.sh'
+    _stopScriptCmdPrefix = ''
+    _stopScriptCmdPostfix = ''
+    _initScriptFileName = 'init-edgeopc.sh'
+    _initScriptCmdPrefix = ''
+    _initScriptCmdPostfix = ' &'
+    _deinitScriptFileName = 'deinit-edgeopc.sh'
+    _deinitScriptCmdPrefix = ''
+    _deinitScriptCmdPostfix = ' &'
+    _targetNewline = '\n'
 elif _targetPlatform == 'windows':
-    _startScriptFileName = "start-edgeopc.bat"
-    _startScriptCmdPrefix = "start "
-    _startScriptCmdPostfix = ""
-    _stopScriptFileName = "stop-edgeopc.bat"
-    _stopScriptCmdPrefix = ""
-    _stopScriptCmdPostfix = ""
-    _initScriptFileName = "init-edgeopc.bat"
-    _initScriptCmdPrefix = ""
-    _initScriptCmdPostfix = ""
-    _deinitScriptFileName = "deinit-edgeopc.bat"
-    _deinitScriptCmdPrefix = ""
-    _deinitScriptCmdPostfix = ""
+    _startScriptFileName = 'start-edgeopc.bat'
+    _startScriptCmdPrefix = 'start '
+    _startScriptCmdPostfix = ''
+    _stopScriptFileName = 'stop-edgeopc.bat'
+    _stopScriptCmdPrefix = ''
+    _stopScriptCmdPostfix = ''
+    _initScriptFileName = 'init-edgeopc.bat'
+    _initScriptCmdPrefix = ''
+    _initScriptCmdPostfix = ''
+    _deinitScriptFileName = 'deinit-edgeopc.bat'
+    _deinitScriptCmdPrefix = ''
+    _deinitScriptCmdPostfix = ''
+    _targetNewline = '\r\n'
 
 # validate arguments
 if _args.outdir is not None:
@@ -883,15 +988,16 @@ if _args.hostdir is not None:
 
     if _args.targetplatform:
         # create a directory for the configuration files, if not running on the IoTEdge device
-        outdirconfig = _args.outdir + '/config'
-        if not os.path.exists(outdirconfig):
-            os.mkdir(outdirconfig)
-            logging.info("Create directory '{0}' for target system configuration files.".format(outdirconfig))
-        elif not os.path.isdir(outdirconfig):
-            logging.critical("'{0}' is expected to be a directory to provide configuration files, but it is not. Pls check. Exiting...".format(outdirconfig))
+        _outdirConfig = _args.outdir + '/config'
+        if not os.path.exists(_outdirConfig):
+            os.mkdir(_outdirConfig)
+            logging.info("Create directory '{0}' for target system configuration files.".format(_outdirConfig))
+        elif not os.path.isdir(_outdirConfig):
+            logging.critical("'{0}' is expected to be a directory to provide configuration files, but it is not. Pls check. Exiting...".format(_outdirConfig))
             sys.exit(2)
-        logging.info("Create all generated configuration files in directory '{0}'.".format(outdirconfig))
+        logging.info("Create all generated configuration files in directory '{0}'.".format(_outdirConfig))
         logging.info("Passing '{0}' to docker as source in bind, maps to '{1}'.".format(_dockerBindSource, _args.hostdir))
+        _hostDirHost = _args.hostdir
     else:
         logging.info("--targetplatform was not specified. Assume we run on the IoTEdge device.")
         if _targetPlatform in [ 'windows', 'linux' ]:
@@ -917,10 +1023,12 @@ _cfMesContainer = CFMES_CONTAINER_IMAGE if '/' in CFMES_CONTAINER_IMAGE else '{0
 _cfStationContainer = CFSTATION_CONTAINER_IMAGE if '/' in CFSTATION_CONTAINER_IMAGE else '{0}/{1}'.format(_args.dockerregistry, CFSTATION_CONTAINER_IMAGE)
 _opcProxyContainer = OPCPROXY_CONTAINER_IMAGE if '/' in OPCPROXY_CONTAINER_IMAGE else '{0}/{1}'.format(_args.dockerregistry, OPCPROXY_CONTAINER_IMAGE)
 _opcGdsContainer = OPCGDS_CONTAINER_IMAGE if '/' in OPCGDS_CONTAINER_IMAGE else '{0}/{1}'.format(_args.dockerregistry, OPCGDS_CONTAINER_IMAGE)
+_opcTwinContainer = OPCTWIN_CONTAINER_IMAGE if '/' in OPCTWIN_CONTAINER_IMAGE else '{0}/{1}'.format(_args.dockerregistry, OPCTWIN_CONTAINER_IMAGE)
 _opcPublisherContainer = OPCPUBLISHER_CONTAINER_IMAGE if '/' in OPCPUBLISHER_CONTAINER_IMAGE else '{0}/{1}'.format(_args.dockerregistry, OPCPUBLISHER_CONTAINER_IMAGE)
 logging.info("Using OpcPublisher container: '{0}'".format(_opcPublisherContainer))
 logging.info("Using OpcProxy container: '{0}'".format(_opcProxyContainer))
 logging.info("Using OpcGds container: '{0}'".format(_opcGdsContainer))
+logging.info("Using OpcTwin container: '{0}'".format(_opcTwinContainer))
 logging.info("Using CfMes container: '{0}'".format(_cfMesContainer))
 logging.info("Using CfStation container: '{0}'".format(_cfStationContainer))
 
@@ -1028,18 +1136,20 @@ if _args.subcommand == 'iotcsim':
         sys.exit(2) 
 
 # build the list of hostname/IP address mapping to allow the containers to access the local and external hosts, in case there is no DNS (espacially on Windows)
+# add localhost info if we run on the targetplatform
 _additionalHosts = []
-ipAddress = getLocalIpAddress()
-if ipAddress is None:
-    logging.critical("There is not network connection available.")
-    sys.exit(1)
-hostName = socket.gethostname()
-fqdnHostName = socket.getfqdn()
-_additionalHosts.append({ "host": hostName, "ip": ipAddress })
-if hostName.lower() != fqdnHostName.lower():
-    _additionalHosts.append({ "host": fqdnHostName, "ip": ipAddress })
-else:
-    print("FQDN '{0}' is equal to hostname '{1}'".format(fqdnHostName, hostName))
+if not _args.targetplatform:
+    ipAddress = getLocalIpAddress()
+    if ipAddress is None:
+        logging.critical("There is not network connection available.")
+        sys.exit(1)
+    hostName = socket.gethostname()
+    fqdnHostName = socket.getfqdn()
+    _additionalHosts.append({ "host": hostName, "ip": ipAddress })
+    if hostName.lower() != fqdnHostName.lower():
+        _additionalHosts.append({ "host": fqdnHostName, "ip": ipAddress })
+    else:
+        print("FQDN '{0}' is equal to hostname '{1}'".format(fqdnHostName, hostName))
 _additionalHosts.extend(getExtraHosts()[:])
 _extraHosts = []
 if len(_additionalHosts) > 0:
@@ -1115,11 +1225,11 @@ if _args.subcommand == 'gw':
     if _args.targetplatform:
         if _args.nodesconfig:
             nodesconfigFileName = 'pn-' + _args.domain + '.json'
-            shutil.copyfile(_args.nodesconfig, '{0}/{1}'.format(outdirconfig, nodesconfigFileName))
+            shutil.copyfile(_args.nodesconfig, '{0}/{1}'.format(_outdirConfig, nodesconfigFileName))
         try:
             if _args.telemetryconfig:
                 telemetryconfigFileName = 'tc-' + _args.domain + '.json'
-                shutil.copyfile(_args.telemetryconfig, '{0}/{1}'.format(outdirconfig, telemetryconfigFileName))
+                shutil.copyfile(_args.telemetryconfig, '{0}/{1}'.format(_outdirConfig, telemetryconfigFileName))
         except AttributeError:
             pass
     else:
@@ -1171,14 +1281,14 @@ writeScript(_deinitScriptFileName, _deinitScript, reverse = True)
 # copy prerequisites installation scripts
 if _args.targetplatform:
     if _args.targetplatform in [ 'linux', 'wsl' ]:
-        shutil.copyfile('{0}/iotedgeopc-prerequisites.sh'.format(_scriptDir), '{0}/iotedgeopc-prerequisites.sh'.format(_args.outdir))
-        shutil.copyfile('{0}/iotedgeopc-linux-packages.sh'.format(_scriptDir), '{0}/iotedgeopc-linux-packages.sh'.format(_args.outdir))
+        shutil.copyfile('{0}/iotedgeopc-install-prerequisites.sh'.format(_scriptDir), '{0}/iotedgeopc-install-prerequisites.sh'.format(_args.outdir))
+        shutil.copyfile('{0}/iotedgeopc-install-linux-packages.sh'.format(_scriptDir), '{0}/iotedgeopc-install-linux-packages.sh'.format(_args.outdir))
     shutil.copyfile('{0}/requirements.txt'.format(_scriptDir), '{0}/requirements.txt'.format(_args.outdir))
     # inform user when not running on target platform
     logging.info('')
-    logging.info("Please copy any required script files from '{0}' to your target system.".format(_args._outdir))
+    logging.info("Please copy any required script files from '{0}' to your target system.".format(_args.outdir))
     if _args.hostdir:
-        logging.info("Please copy any required configuration files from '{0}' to your target system to directory '{1}'.".format(_hostDirHost, _args.hostdir))
+        logging.info("Please copy any required configuration files from '{0}' to your target system to directory '{1}'.".format(_outdirConfig, _args.hostdir))
     
 # done
 logging.info('')

@@ -14,16 +14,6 @@ volumes:
             name: ${DOMAIN}_cfappdata
 
 services:
-    mes:
-        image: ${CFMES_CONTAINER}
-        restart: always
-        container_name: ${MES_HOSTNAME}
-        hostname: ${MES_HOSTNAME}
-        volumes:
-            - "cfx509certstores:/root/.dotnet/corefx/cryptography/x509stores"
-            - "${BINDSOURCE}:/d"
-        command: --lf /d/${DOMAIN}-${PRODUCTIONLINE}-mes.log --as ${ASSEMBLY_ENDPOINT} --ts ${TEST_ENDPOINT} --ps ${PACKAGING_ENDPOINT} --tp /d/trusted --rp /d/rejected --ip /d/issuer --to
-
     assembly:
         image: ${CFSTATION_CONTAINER}
         restart: always
@@ -46,7 +36,7 @@ services:
             - "${BINDSOURCE}:/d"
         expose: 
             - "${TEST_PORT}"
-        command: --lf /d/${DOMAIN}-${PRODUCTIONLINE}-test.log --pn ${TEST_PORT} ${TEST_GENERATEALERTS}  ${TEST_CYCLETIME} ${TEST_POWERCONSUMPTION} --tp /d/trusted --rp /d/rejected --ip /d/issuer --to
+        command: --ll debug --lf /d/${DOMAIN}-${PRODUCTIONLINE}-test.log --pn ${TEST_PORT} ${TEST_GENERATEALERTS}  ${TEST_CYCLETIME} ${TEST_POWERCONSUMPTION} --tp /d/trusted --rp /d/rejected --ip /d/issuer --to
             
     packaging:
         image: ${CFSTATION_CONTAINER}
@@ -58,4 +48,14 @@ services:
             - "${BINDSOURCE}:/d"
         expose: 
             - "${PACKAGING_PORT}"
-        command: --lf /d/${DOMAIN}-${PRODUCTIONLINE}-packaging.log --pn ${PACKAGING_PORT} ${PACKAGING_GENERATEALERTS}  ${PACKAGING_CYCLETIME} ${PACKAGING_POWERCONSUMPTION} --tp /d/trusted --rp /d/rejected --ip /d/issuer --to
+        command: --ll debug --lf /d/${DOMAIN}-${PRODUCTIONLINE}-packaging.log --pn ${PACKAGING_PORT} ${PACKAGING_GENERATEALERTS}  ${PACKAGING_CYCLETIME} ${PACKAGING_POWERCONSUMPTION} --tp /d/trusted --rp /d/rejected --ip /d/issuer --to
+
+    mes:
+        image: ${CFMES_CONTAINER}
+        restart: always
+        container_name: ${MES_HOSTNAME}
+        hostname: ${MES_HOSTNAME}
+        volumes:
+            - "cfx509certstores:/root/.dotnet/corefx/cryptography/x509stores"
+            - "${BINDSOURCE}:/d"
+        command: --ll debug --lf /d/${DOMAIN}-${PRODUCTIONLINE}-mes.log --as ${ASSEMBLY_ENDPOINT} --ts ${TEST_ENDPOINT} --ps ${PACKAGING_ENDPOINT} --tp /d/trusted --rp /d/rejected --ip /d/issuer --to
