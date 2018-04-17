@@ -447,7 +447,7 @@ def createNonEdgeDomainConfiguration(domainName):
         logging.debug(json.dumps(json.loads(deviceCreateResult), indent=4))
 
         logging.info("Setting Discover mode for device '{0}'".format(deviceId))
-        cmd = 'az iot hub device-twin update --hub-name {0} --device-id {1} --set properties.desired.Discover="Scan"'.format(_args.iothubname, deviceId)
+        cmd = 'az iot hub device-twin update --hub-name {0} --device-id {1} --set properties.desired.Discovery="Scan"'.format(_args.iothubname, deviceId)
         updatePropertiesResult = os.popen(cmd).read()
         if not updatePropertiesResult:
             logging.critical("Can not set properties for device. Exiting...")
