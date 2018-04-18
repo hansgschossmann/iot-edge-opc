@@ -760,9 +760,12 @@ def generateCfPublishedNodesConfig(factory):
         if os.path.exists(nodesOutFileName):
             nodesconfigFileName = 'pn-' + domainName + '.json'
             shutil.copyfile(nodesOutFileName, '{0}/{1}'.format(_hostDirHost, nodesconfigFileName))
-        if _args.telemetryconfig:
-            telemetryconfigFileName = 'tc-' + _args.domain + '.json'
-            shutil.copyfile(_args.telemetryconfig, '{0}/{1}'.format(_hostDirHost, telemetryconfigFileName))
+        try:
+            if _args.telemetryconfig:
+                telemetryconfigFileName = 'tc-' + _args.domain + '.json'
+                shutil.copyfile(_args.telemetryconfig, '{0}/{1}'.format(_hostDirHost, telemetryconfigFileName))
+        except AttributeError:
+            pass
 
 
 def validateTopology():
