@@ -19,7 +19,7 @@ services:
         volumes:
             - "cfx509certstores:/root/.dotnet/corefx/cryptography/x509stores"
             - "${BINDSOURCE}:/d"
-        ports:
+        expose:
             - "62222"
         command: pub-${DOMAIN} --pf /d/pn-${DOMAIN}.json ${TELEMETRYCONFIG_OPTION} --lf /d/${DOMAIN}-pub.log --domain ${DOMAIN} --di=60 --tp /d/trusted --rp /d/rejected --ip /d/issuer --to
            
@@ -45,7 +45,7 @@ services:
         volumes:
             - "cfx509certstores:/root/.dotnet/corefx/cryptography/x509stores"
             - "${BINDSOURCE}:/d"
-        ports:
+        expose:
             - "58850"
 
     twin:
