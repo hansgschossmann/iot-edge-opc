@@ -3,15 +3,15 @@ version: '3'
 networks:
     default:
         external:
-            name: ${DOMAIN_NETWORK}
+            name: ${SITE_NETWORK}
 
 volumes:
     cfx509certstores:
         external:
-            name: ${DOMAIN}_cfx509certstores
+            name: ${SITE}_cfx509certstores
     cfappdata:
         external:
-            name: ${DOMAIN}_cfappdata
+            name: ${SITE}_cfappdata
 
 services:
     assembly:
@@ -22,9 +22,9 @@ services:
         volumes:
             - "cfx509certstores:/root/.dotnet/corefx/cryptography/x509stores"
             - "${BINDSOURCE}:/d"
-        expose: 
+        ports:
             - "${ASSEMBLY_PORT}"
-        command: --ll debug --lf /d/${DOMAIN}-${PRODUCTIONLINE}-assembly.log --pn ${ASSEMBLY_PORT} ${ASSEMBLY_GENERATEALERTS}  ${ASSEMBLY_CYCLETIME} ${ASSEMBLY_POWERCONSUMPTION} --tp /d/trusted --rp /d/rejected --ip /d/issuer --to
+        command: --ll debug --lf /d/${SITE}-${PRODUCTIONLINE}-assembly.log --pn ${ASSEMBLY_PORT} ${ASSEMBLY_GENERATEALERTS}  ${ASSEMBLY_CYCLETIME} ${ASSEMBLY_POWERCONSUMPTION} --tp /d/trusted --rp /d/rejected --ip /d/issuer --to
             
     test:
         image: ${CFSTATION_CONTAINER}
@@ -34,9 +34,9 @@ services:
         volumes:
             - "cfx509certstores:/root/.dotnet/corefx/cryptography/x509stores"
             - "${BINDSOURCE}:/d"
-        expose: 
+        ports:
             - "${TEST_PORT}"
-        command: --ll debug --lf /d/${DOMAIN}-${PRODUCTIONLINE}-test.log --pn ${TEST_PORT} ${TEST_GENERATEALERTS}  ${TEST_CYCLETIME} ${TEST_POWERCONSUMPTION} --tp /d/trusted --rp /d/rejected --ip /d/issuer --to
+        command: --ll debug --lf /d/${SITE}-${PRODUCTIONLINE}-test.log --pn ${TEST_PORT} ${TEST_GENERATEALERTS}  ${TEST_CYCLETIME} ${TEST_POWERCONSUMPTION} --tp /d/trusted --rp /d/rejected --ip /d/issuer --to
             
     packaging:
         image: ${CFSTATION_CONTAINER}
@@ -46,9 +46,9 @@ services:
         volumes:
             - "cfx509certstores:/root/.dotnet/corefx/cryptography/x509stores"
             - "${BINDSOURCE}:/d"
-        expose: 
+        ports:
             - "${PACKAGING_PORT}"
-        command: --ll debug --lf /d/${DOMAIN}-${PRODUCTIONLINE}-packaging.log --pn ${PACKAGING_PORT} ${PACKAGING_GENERATEALERTS}  ${PACKAGING_CYCLETIME} ${PACKAGING_POWERCONSUMPTION} --tp /d/trusted --rp /d/rejected --ip /d/issuer --to
+        command: --ll debug --lf /d/${SITE}-${PRODUCTIONLINE}-packaging.log --pn ${PACKAGING_PORT} ${PACKAGING_GENERATEALERTS}  ${PACKAGING_CYCLETIME} ${PACKAGING_POWERCONSUMPTION} --tp /d/trusted --rp /d/rejected --ip /d/issuer --to
 
     mes:
         image: ${CFMES_CONTAINER}
@@ -58,4 +58,4 @@ services:
         volumes:
             - "cfx509certstores:/root/.dotnet/corefx/cryptography/x509stores"
             - "${BINDSOURCE}:/d"
-        command: --ll debug --lf /d/${DOMAIN}-${PRODUCTIONLINE}-mes.log --as ${ASSEMBLY_ENDPOINT} --ts ${TEST_ENDPOINT} --ps ${PACKAGING_ENDPOINT} --tp /d/trusted --rp /d/rejected --ip /d/issuer --to
+        command: --ll debug --lf /d/${SITE}-${PRODUCTIONLINE}-mes.log --as ${ASSEMBLY_ENDPOINT} --ts ${TEST_ENDPOINT} --ps ${PACKAGING_ENDPOINT} --tp /d/trusted --rp /d/rejected --ip /d/issuer --to

@@ -3,31 +3,31 @@ version: '3'
 volumes:
     cfx509certstores:
         external:
-            name: ${DOMAIN}_cfx509certstores
+            name: ${SITE}_cfx509certstores
     cfappdata:
         external:
-            name: ${DOMAIN}_cfappdata
+            name: ${SITE}_cfappdata
 
 services:
     publisher:
         image: ${OPCPUBLISHER_CONTAINER}
         restart: "no"
-        container_name: pub-${DOMAIN}
-        hostname: pub-${DOMAIN}
+        container_name: pub-${SITE}
+        hostname: pub-${SITE}
         volumes:
             - "cfx509certstores:/root/.dotnet/corefx/cryptography/x509stores"
             - "${BINDSOURCE}:/d"
-        expose:
+        ports:
             - "62222"
-        command: pub-${DOMAIN} -c "${IOTHUB_CONNECTIONSTRING}" -i --lf /d/${DOMAIN}-pub.log --domain ${DOMAIN} --di=60 --tp /d/trusted --rp /d/rejected --ip /d/issuer --to
+        command: pub-${SITE} -c "${IOTHUB_CONNECTIONSTRING}" -i --lf /d/${SITE}-pub.log --site ${SITE} --di=60 --tp /d/trusted --rp /d/rejected --ip /d/issuer --to --aa
            
     proxy:
         image: ${OPCPROXY_CONTAINER}
         restart: "no"
-        container_name: prx-${DOMAIN}
-        hostname: prx-${DOMAIN}
+        container_name: prx-${SITE}
+        hostname: prx-${SITE}
         volumes:
             - "cfx509certstores:/root/.dotnet/corefx/cryptography/x509stores"
             - "${BINDSOURCE}:/d"
-        command: --domain ${DOMAIN} -c "${IOTHUB_CONNECTIONSTRING}" -i -l /d/${DOMAIN}-prx.log -D /d/prx-${DOMAIN}-cs.db
+        command: --site ${SITE} -c "${IOTHUB_CONNECTIONSTRING}" -i -l /d/${SITE}-prx.log -D /d/prx-${SITE}-cs.db
 

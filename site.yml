@@ -1,0 +1,56 @@
+version: '3'
+
+volumes:
+    cfx509certstores:
+        external:
+            name: ${SITE}_cfx509certstores
+    cfappdata:
+        external:
+            name: ${SITE}_cfappdata
+
+services:
+    publisher:
+        image: ${OPCPUBLISHER_CONTAINER}
+        restart: always
+        container_name: pub-${SITE}
+        hostname: pub-${SITE}
+        extra_hosts:
+            ${EXTRAHOSTS}
+        volumes:
+            - "cfx509certstores:/root/.dotnet/corefx/cryptography/x509stores"
+            - "${BINDSOURCE}:/d"
+        ports:
+            - "62222"
+        command: pub-${SITE} --pf /d/pn-${SITE}.json ${TELEMETRYCONFIG_OPTION} --lf /d/${SITE}-pub.log --site ${SITE} --di=60 --tp /d/trusted --rp /d/rejected --ip /d/issuer --to --aa
+           
+    proxy:
+        image: ${OPCPROXY_CONTAINER}
+        restart: always
+        container_name: prx-${SITE}
+        hostname: prx-${SITE}
+        extra_hosts:
+            ${EXTRAHOSTS}
+        volumes:
+            - "cfx509certstores:/root/.dotnet/corefx/cryptography/x509stores"
+            - "${BINDSOURCE}:/d"
+        command: -l /d/${SITE}-prx.log -c "${IOTHUB_CONNECTIONSTRING}" -D /d/prx-${SITE}-cs.db --site ${SITE} 
+
+    gds:
+        image: ${OPCGDS_CONTAINER}
+        restart: always
+        container_name: gds-${SITE}
+        hostname: gds-${SITE}
+        extra_hosts:
+            ${EXTRAHOSTS}
+        volumes:
+            - "cfx509certstores:/root/.dotnet/corefx/cryptography/x509stores"
+            - "${BINDSOURCE}:/d"
+        ports:
+            - "58850"
+
+    twin:
+        image: ${OPCTWIN_CONTAINER}
+        restart: always
+        container_name: twin-${SITE}
+        hostname: twin-${SITE}
+        command: ${OPCTWIN_DEVICECONNECTIONSTRING_OPTION}

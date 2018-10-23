@@ -9,10 +9,10 @@ The `iotedgeopc.py` script supports different scenarios:
 Deploy a simulation which could be used by Connectedfactory PCS. This requires a topology description file as input. This file will be parsed. The output of the iotedgeopc.py will be a set of scripts and docker-compose configuration files, which could be used to initialize and run the compelete Connectedfactory production line and factory simulation.
 
 ##  Connectedfactory site onboarding (cf)
-Deploy the OPC Edge components to a real world site. This requires a topology descriptoin file as input as well as the domain name of the Connectedfactory domain. This domain needs to be configured in the topology description. The output of the iotedgeopc.py will be a set of scripts and docker-compose configuration files, which could be used to initialize and run the compelete Connectedfactory production line and factory simulation.
+Deploy the OPC Edge components to a real world site. This requires a topology descriptoin file as input as well as the site name of the Connectedfactory site. This site needs to be configured in the topology description. The output of the iotedgeopc.py will be a set of scripts and docker-compose configuration files, which could be used to initialize and run the compelete Connectedfactory production line and factory simulation.
 
 ## Industrial gateway (gw)
-Deploy the OPC Edge components to a real world side. This requires as input the list of nodes to be published by OPC Publisher in its publishednodes.json format as well as a domain name. The domain name is used for creation of IoTHub IoTEdge device identities as well as tagging of the ApplicationUri value of t the ingested telemetry. The output of the iotedgeopc.py will be a set of scripts and docker-compose configuration files, which could be used to initialize and run the OPC Edge components.
+Deploy the OPC Edge components to a real world side. This requires as input the list of nodes to be published by OPC Publisher in its publishednodes.json format as well as a site name. The site name is used for creation of IoTHub IoTEdge device identities as well as tagging of the ApplicationUri value of t the ingested telemetry. The output of the iotedgeopc.py will be a set of scripts and docker-compose configuration files, which could be used to initialize and run the OPC Edge components.
 
 ## Azure IoTCentral onboarding (iotcsim)
 Create scripts to ingest data of a simulated OPC UA server into IoTCentral.
@@ -21,7 +21,7 @@ Create scripts to ingest data of a simulated OPC UA server into IoTCentral.
 # Functionality
 All scenarios (except iotcsim) will use IoTEdge as runtime environment for the OPC modules, which run as docker container:
 - Create an IoTEdge deployment with all the OPC Edge components configures as modules. By adding a new module to the corresponding yml files this module will be picked up by the script and will become part of the IoTEdge deployment definition.
-- Create an IoTEdge device identity with name "iot-edge-<domain>"
+- Create an IoTEdge device identity with name "iot-edge-<site>"
 - Create init-opcedge, start-edgeopc, stop-edgeopc and deinit-edgeopc scripts, which will call iotedgectl and docker-compose to configure and create the required components.
 
 # Usage of `iotedgeopc.py`
@@ -77,7 +77,7 @@ This will generate scripts in the subdirectory out of your current directory.
 To start ingesting data into Connectedfactory change to
  the out directory and run:
 - init-opcedge, to init all required components.
-- start-opcedge, to run IoTEdge as well as all Cf factories and domains as configured.
+- start-opcedge, to run IoTEdge as well as all Cf factories and sites as configured.
 
 To stop ingesting data and deinitialize all components, change to the out directory and run:
 - stop-opcedge, to stop ingesting data.
