@@ -646,8 +646,8 @@ _opcPublisherContainer = OPCPUBLISHER_CONTAINER_IMAGE if '/' in OPCPUBLISHER_CON
 _opcPublisherContainer = '{0}:'.format(_opcPublisherContainer) if not OPCPUBLISHER_CONTAINER_VERSION else '{0}:{1}-'.format(_opcPublisherContainer, OPCPUBLISHER_CONTAINER_VERSION)
 _opcPublisherContainer = '{0}{1}'.format(_opcPublisherContainer, 'windows') if _containerOs == 'windows' else '{0}{1}'.format(_opcPublisherContainer, 'linux')
 _opcPublisherContainer = '{0}-{1}'.format(_opcPublisherContainer, 'amd64') if _platformCpu == 'amd64' else '{0}-{1}'.format(_opcPublisherContainer, 'arm32v7')
-_opcPlcContainer = OPCTWIN_CONTAINER_IMAGE if '/' in OPCTWIN_CONTAINER_IMAGE else '{0}/{1}'.format(_args.dockerregistry, OPCTWIN_CONTAINER_IMAGE)
-_opcPlcContainer = '{0}:'.format(_opcPlcContainer) if not OPCTWIN_CONTAINER_VERSION else '{0}:{1}-'.format(_opcPlcContainer, OPCTWIN_CONTAINER_VERSION)
+_opcPlcContainer = OPCPLC_CONTAINER_IMAGE if '/' in OPCPLC_CONTAINER_IMAGE else '{0}/{1}'.format(_args.dockerregistry, OPCPLC_CONTAINER_IMAGE)
+_opcPlcContainer = '{0}:'.format(_opcPlcContainer) if not OPCPLC_CONTAINER_VERSION else '{0}:{1}-'.format(_opcPlcContainer, OPCPLC_CONTAINER_VERSION)
 _opcPlcContainer = '{0}{1}'.format(_opcPlcContainer, 'windows') if _containerOs == 'windows' else '{0}{1}'.format(_opcPlcContainer, 'linux')
 _opcPlcContainer = '{0}-{1}'.format(_opcPlcContainer, 'amd64') if _platformCpu == 'amd64' else '{0}{1}'.format(_opcPlcContainer, 'arm32v7')
 
