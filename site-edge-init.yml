@@ -1,9 +1,6 @@
 version: '3'
 
 volumes:
-    cfx509certstores:
-        external:
-            name: ${SITE}_cfx509certstores
     cfappdata:
         external:
             name: ${SITE}_cfappdata
@@ -12,10 +9,9 @@ services:
     proxy:
         image: ${OPCPROXY_CONTAINER}
         restart: "no"
-        container_name: prx-${SITE}
+        container_name: prx-${SITE}-init
         hostname: prx-${SITE}
         volumes:
-            - "cfx509certstores:/root/.dotnet/corefx/cryptography/x509stores"
             - "${BINDSOURCE}:/d"
-        command: --site ${SITE} -c "${IOTHUB_CONNECTIONSTRING}" -i -l /d/${SITE}-prx.log -D /d/prx-${SITE}-cs.db
+        command: --domain ${SITE} -c "${IOTHUB_CONNECTIONSTRING}" -i -l /d/${SITE}-prx.log -D /d/prx-${SITE}-cs.db
 

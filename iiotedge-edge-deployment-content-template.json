@@ -1,4 +1,4 @@
-{
+  {
   "content": {
     "moduleContent": {
       "$edgeAgent": {
@@ -15,7 +15,7 @@
             "edgeAgent": {
               "type": "docker",
               "settings": {
-                "image": "microsoft/azureiotedge-agent:1.0-preview",
+                "image": "microsoft/azureiotedge-agent:1.0",
                 "createOptions": "{}"
               }
             },
@@ -24,8 +24,8 @@
               "status": "running",
               "restartPolicy": "always",
               "settings": {
-                "image": "microsoft/azureiotedge-hub:1.0-preview",
-                "createOptions": "{}"
+                "image": "microsoft/azureiotedge-hub:1.0",
+                "createOptions": "{\"HostConfig\":{\"PortBindings\":{\"8883/tcp\":[{\"HostPort\":\"8883\"}],\"443/tcp\":[{\"HostPort\":\"443\"}],\"5671/tcp\":[{\"HostPort\":\"5671\"}]}}}"
               }
             }
           },
@@ -37,7 +37,7 @@
         "properties.desired": {
           "schemaVersion": "1.0",
           "routes": {
-            "route": "FROM /* INTO $upstream"
+            "route": "FROM /messages/* INTO $upstream"
           },
           "storeAndForwardConfiguration": {
             "timeToLiveSecs": 7200

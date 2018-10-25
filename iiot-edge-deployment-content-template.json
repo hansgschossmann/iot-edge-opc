@@ -16,7 +16,7 @@
               "type": "docker",
               "settings": {
                 "image": "mcr.microsoft.com/azureiotedge-agent:1.0",
-                "createOptions": "{}"
+                "createOptions": ""
               }
             },
             "edgeHub": {
@@ -37,7 +37,7 @@
         "properties.desired": {
           "schemaVersion": "1.0",
           "routes": {
-            "route": "FROM /* INTO $upstream"
+            "route": "FROM /messages/* INTO $upstream"
           },
           "storeAndForwardConfiguration": {
             "timeToLiveSecs": 7200

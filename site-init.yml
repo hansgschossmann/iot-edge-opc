@@ -1,9 +1,6 @@
 version: '3'
 
 volumes:
-    cfx509certstores:
-        external:
-            name: ${SITE}_cfx509certstores
     cfappdata:
         external:
             name: ${SITE}_cfappdata
@@ -15,7 +12,6 @@ services:
         container_name: pub-${SITE}
         hostname: pub-${SITE}
         volumes:
-            - "cfx509certstores:/root/.dotnet/corefx/cryptography/x509stores"
             - "${BINDSOURCE}:/d"
         ports:
             - "62222"
@@ -27,7 +23,6 @@ services:
         container_name: prx-${SITE}
         hostname: prx-${SITE}
         volumes:
-            - "cfx509certstores:/root/.dotnet/corefx/cryptography/x509stores"
             - "${BINDSOURCE}:/d"
         command: --site ${SITE} -c "${IOTHUB_CONNECTIONSTRING}" -i -l /d/${SITE}-prx.log -D /d/prx-${SITE}-cs.db
 
