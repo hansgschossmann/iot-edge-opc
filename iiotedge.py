@@ -780,6 +780,7 @@ if _args.targetplatform:
     if _args.targetplatform in [ 'windows' ]:
         shutil.copyfile('{0}/Init-IotEdgeService.ps1'.format(_scriptDir), '{0}/Init-IotEdgeService.ps1'.format(_args.outdir))
         shutil.copyfile('{0}/Deinit-IotEdgeService.ps1'.format(_scriptDir), '{0}/Deinit-IotEdgeService.ps1'.format(_args.outdir))
+        shutil.copyfile('{0}Prepare-IIotHost.ps1'.format(_scriptDir), '{0}/Prepare-IIotHost.ps1'.format(_args.outdir))
     if _args.targetplatform in [ 'linux', 'wsl' ]:
         shutil.copyfile('{0}/iiotedge-install-prerequisites.sh'.format(_scriptDir), '{0}/iiotedge-install-prerequisites.sh'.format(_args.outdir))
         shutil.copyfile('{0}/iiotedge-install-linux-packages.sh'.format(_scriptDir), '{0}/iiotedge-install-linux-packages.sh'.format(_args.outdir))
@@ -790,8 +791,9 @@ if _args.targetplatform:
     if _args.hostdir:
         logging.info("Please copy any required configuration files from '{0}' to your target system to directory '{1}'.".format(_outdirConfig, _args.hostdir))
 elif _targetPlatform == 'windows':
-       shutil.copyfile('{0}/Init-IotEdgeService.ps1'.format(_scriptDir), '{0}/Init-IotEdgeService.ps1'.format(_args.outdir))
-       shutil.copyfile('{0}/Deinit-IotEdgeService.ps1'.format(_scriptDir), '{0}/Deinit-IotEdgeService.ps1'.format(_args.outdir))
+        shutil.copyfile('{0}/Init-IotEdgeService.ps1'.format(_scriptDir), '{0}/Init-IotEdgeService.ps1'.format(_args.outdir))
+        shutil.copyfile('{0}/Deinit-IotEdgeService.ps1'.format(_scriptDir), '{0}/Deinit-IotEdgeService.ps1'.format(_args.outdir))
+        shutil.copyfile('{0}/Prepare-IIotHost.ps1'.format(_scriptDir), '{0}/Prepare-IIotHost.ps1'.format(_args.outdir))
 
 # done
 logging.info('')

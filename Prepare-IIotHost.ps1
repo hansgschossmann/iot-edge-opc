@@ -5,6 +5,28 @@
     Installs Chocolatey and all required tools.
 #>
 
+# check if we are Administrator
+$currentPrincipal = New-Object Security.Principal.WindowsPrincipal([Security.Principal.WindowsIdentity]::GetCurrent())
+if (!$currentPrincipal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator))
+{
+    Read-Host -Propmt "Please run PowerSehll as Administrator and retry. Press a key."
+    throw("Please run PowerShell as Administrator and retry.")
+}
+
+# Ask user
+Read-Host -Propmt "Create a restore point. When done press a key."
+
+# Ask user
+Write-Output "Uninstall any of those apps if they are installed manually:"
+Write-Output "Python"
+Write-Output "Azure CLI for Python"
+Write-Output "Visual Studio Code"
+Write-Output "Git"
+Write-Output "Docker for Windows"
+Write-Output "Docker compose"
+Write-Output "pip"
+Read-Host -Propmt "When done, create a restore point and press a key."
+
 Set-ExecutionPolicy Bypass -Scope Process -Force; iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
 
 choco install python -y
@@ -15,7 +37,7 @@ choco install docker-for-windows -y
 choco install docker-compose -y
 choco install pip -y
 
-Write-Output "Open another PowerShell and:"
+Write-Output "Open another PowerShell as Administrator and:"
 Write-Output "md c:\iiot"
 Write-Output "cd c:\iiot"
 Write-Output "git clone https://github.com/hansgschossmann/iot-edge-opc.git"
