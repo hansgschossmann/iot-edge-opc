@@ -27,7 +27,7 @@ Write-Output "Docker compose"
 Write-Output "pip"
 Read-Host -Propmt "When done, create a restore point and press a key."
 
-Set-ExecutionPolicy Bypass -Scope Process -Force; iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
+Set-ExecutionPolicy Bypass -Scope Process -Force; iex ((New-Object System.Net.WebClient).DownloadString("https://chocolatey.org/install.ps1"))
 
 choco install python -y
 choco install azure-cli -y

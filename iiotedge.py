@@ -253,15 +253,15 @@ def createEdgeSiteConfiguration(siteName):
                 # configure EdgeHub to use proxy
                 if not 'env' in deploymentContent['content']['modulesContent']['$edgeAgent']['properties.desired']['systemModules']['edgeHub']['settings']:
                     deploymentContent['content']['modulesContent']['$edgeAgent']['properties.desired']['systemModules']['edgeHub']['settings']['env'] = {} 
-                if not 'http_proxy' in deploymentContent['content']['modulesContent']['$edgeAgent']['properties.desired']['systemModules']['edgeHub']['settings']['env']:
-                    deploymentContent['content']['modulesContent']['$edgeAgent']['properties.desired']['systemModules']['edgeHub']['settings']['env']['http_proxy'] = {}
-                deploymentContent['content']['modulesContent']['$edgeAgent']['properties.desired']['systemModules']['edgeHub']['settings']['env']['http_proxy'] = { 'value': _args.proxyurl }
+                if not 'https_proxy' in deploymentContent['content']['modulesContent']['$edgeAgent']['properties.desired']['systemModules']['edgeHub']['settings']['env']:
+                    deploymentContent['content']['modulesContent']['$edgeAgent']['properties.desired']['systemModules']['edgeHub']['settings']['env']['httpS_proxy'] = {}
+                deploymentContent['content']['modulesContent']['$edgeAgent']['properties.desired']['systemModules']['edgeHub']['settings']['env']['httpS_proxy'] = { 'value': _args.proxyurl }
                 # configure EdgeAgent to use proxy
                 if not 'env' in deploymentContent['content']['modulesContent']['$edgeAgent']['properties.desired']['systemModules']['edgeAgent']['settings']:
                     deploymentContent['content']['modulesContent']['$edgeAgent']['properties.desired']['systemModules']['edgeAgent']['settings']['env'] = {} 
-                if not 'http_proxy' in deploymentContent['content']['modulesContent']['$edgeAgent']['properties.desired']['systemModules']['edgeAgent']['settings']['env']:
-                    deploymentContent['content']['modulesContent']['$edgeAgent']['properties.desired']['systemModules']['edgeAgent']['settings']['env']['http_proxy'] = {}
-                deploymentContent['content']['modulesContent']['$edgeAgent']['properties.desired']['systemModules']['edgeAgent']['settings']['env']['http_proxy'] = { 'value': _args.proxyurl }
+                if not 'https_proxy' in deploymentContent['content']['modulesContent']['$edgeAgent']['properties.desired']['systemModules']['edgeAgent']['settings']['env']:
+                    deploymentContent['content']['modulesContent']['$edgeAgent']['properties.desired']['systemModules']['edgeAgent']['settings']['env']['httpS_proxy'] = {}
+                deploymentContent['content']['modulesContent']['$edgeAgent']['properties.desired']['systemModules']['edgeAgent']['settings']['env']['httpS_proxy'] = { 'value': _args.proxyurl }
             # configure EdgeHub for requested upstream protocol
             if _args.upstreamprotocol != 'Amqp':
                 if not 'UpstreamProtocol' in deploymentContent['content']['modulesContent']['$edgeAgent']['properties.desired']['systemModules']['edgeAgent']['settings']['env']:
@@ -378,7 +378,7 @@ def createEdgeSiteConfiguration(siteName):
     if _targetPlatform == 'windows':
         initCmd = '. ./Init-IotEdgeService.ps1 -DeviceConnectionString "{0}" -ContainerOs {1} '.format(edgeDeviceConnectionString, _containerOs)
         if _args.proxyurl:
-            initCmd = initCmd + " -ProxyUrl {0} ".format(_args.proxyurl)
+            initCmd = initCmd + " -Proxy {0} ".format(_args.proxyurl)
         # todo for extended offline mqtt support is required
         if _args.upstreamprotocol != 'Ampq':
             initCmd = initCmd + " -UpstreamProtocol {0} ".format(_args.upstreamprotocol)               
