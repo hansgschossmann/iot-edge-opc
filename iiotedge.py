@@ -81,8 +81,16 @@ commonOptArgsParser.add_argument('--lcow', action='store_true',
     help="Forces to use Linux Containers On Windows. Only valid for a Windows target platform.")
 commonOptArgsParser.add_argument('--force', action='store_true',
     help="Forces deletion of existing IoT Edge deployment and device if they exist.")
-commonOptArgsParser.add_argument('--proxyurl', default=None,
-    help="URL to enable IoT Edge communication via proxy.")
+commonOptArgsParser.add_argument('--proxyschema', default="http",
+    help="Schema for the proxy.")
+commonOptArgsParser.add_argument('--proxyhost', default=None,
+    help="Hostname of the proxy to enable IoT Edge communication via proxy.")
+commonOptArgsParser.add_argument('--proxyport', default=None,
+    help="Port tu use for the proxy.")
+commonOptArgsParser.add_argument('--proxyusername', default=None,
+    help="Username to use for proxy authentication.")
+commonOptArgsParser.add_argument('--proxypassword', default=None,
+    help="Password to use for proxy authentication.")
 commonOptArgsParser.add_argument('--upstreamprotocol', choices=['Amqp', 'AmpqWs'], default='Amqp',
     help="the upstream protocol IoT Edge should use for communication via proxy.")
 
@@ -249,19 +257,25 @@ def createEdgeSiteConfiguration(siteName):
         with open('iiot-edge-deployment-content-template.json', 'r') as deploymentContentTemplateFile, open('{0}/{1}.json'.format(_args.outdir, deploymentName), 'w', newline=_targetNewline) as deploymentContentFile:
             deploymentContent = json.loads(deploymentContentTemplateFile.read())
             # add proxy configuration
-            if _args.proxyurl:
+            if _args.proxyhost:
+                ProxyUrl = _args.proxyschema + "://"
+                if _args.proxyusername and _args.proxypassword:
+                    ProxyUrl = ProxyUrl + _args.proxyusername + ":" + _args.proxypassword
+                ProxyUrl = ProxyUrl + "@" + _args.proxyhost
+                if _args.proxyport:
+                    ProxyUrl = ProxyUrl + ":" + _args.proxyport
                 # configure EdgeHub to use proxy
                 if not 'env' in deploymentContent['content']['modulesContent']['$edgeAgent']['properties.desired']['systemModules']['edgeHub']['settings']:
                     deploymentContent['content']['modulesContent']['$edgeAgent']['properties.desired']['systemModules']['edgeHub']['settings']['env'] = {} 
                 if not 'https_proxy' in deploymentContent['content']['modulesContent']['$edgeAgent']['properties.desired']['systemModules']['edgeHub']['settings']['env']:
-                    deploymentContent['content']['modulesContent']['$edgeAgent']['properties.desired']['systemModules']['edgeHub']['settings']['env']['httpS_proxy'] = {}
-                deploymentContent['content']['modulesContent']['$edgeAgent']['properties.desired']['systemModules']['edgeHub']['settings']['env']['httpS_proxy'] = { 'value': _args.proxyurl }
+                    deploymentContent['content']['modulesContent']['$edgeAgent']['properties.desired']['systemModules']['edgeHub']['settings']['env']['https_proxy'] = {}
+                deploymentContent['content']['modulesContent']['$edgeAgent']['properties.desired']['systemModules']['edgeHub']['settings']['env']['https_proxy'] = { 'value': ProxyUrl }
                 # configure EdgeAgent to use proxy
                 if not 'env' in deploymentContent['content']['modulesContent']['$edgeAgent']['properties.desired']['systemModules']['edgeAgent']['settings']:
                     deploymentContent['content']['modulesContent']['$edgeAgent']['properties.desired']['systemModules']['edgeAgent']['settings']['env'] = {} 
                 if not 'https_proxy' in deploymentContent['content']['modulesContent']['$edgeAgent']['properties.desired']['systemModules']['edgeAgent']['settings']['env']:
-                    deploymentContent['content']['modulesContent']['$edgeAgent']['properties.desired']['systemModules']['edgeAgent']['settings']['env']['httpS_proxy'] = {}
-                deploymentContent['content']['modulesContent']['$edgeAgent']['properties.desired']['systemModules']['edgeAgent']['settings']['env']['httpS_proxy'] = { 'value': _args.proxyurl }
+                    deploymentContent['content']['modulesContent']['$edgeAgent']['properties.desired']['systemModules']['edgeAgent']['settings']['env']['https_proxy'] = {}
+                deploymentContent['content']['modulesContent']['$edgeAgent']['properties.desired']['systemModules']['edgeAgent']['settings']['env']['https_proxy'] = { 'value': ProxyUrl }
             # configure EdgeHub for requested upstream protocol
             if _args.upstreamprotocol != 'Amqp':
                 if not 'UpstreamProtocol' in deploymentContent['content']['modulesContent']['$edgeAgent']['properties.desired']['systemModules']['edgeAgent']['settings']['env']:
@@ -377,8 +391,15 @@ def createEdgeSiteConfiguration(siteName):
     _initScript.append(_initScriptCmdPrefix + initCmd + _initScriptCmdPostfix + '\n')
     if _targetPlatform == 'windows':
         initCmd = '. ./Init-IotEdgeService.ps1 -DeviceConnectionString "{0}" -ContainerOs {1} '.format(edgeDeviceConnectionString, _containerOs)
-        if _args.proxyurl:
-            initCmd = initCmd + " -Proxy {0} ".format(_args.proxyurl)
+        if _args.proxyhost:
+            if _args.proxyport:
+                initCmd = initCmd + ' -Proxy "{0}://{1}:{2}" '.format(_args.proxyschema, _args.proxyhost, _args.proxyport)
+            else:
+                initCmd = initCmd + ' -Proxy "{0}://{1}" '.format(_args.proxyschema, _args.proxyhost)
+            if _args.proxyusername:
+                initCmd = initCmd + " -ProxyUsername {0} ".format(_args.proxyusername)               
+            if _args.proxypassword:
+                initCmd = initCmd + " -ProxyPassword {0} ".format(_args.proxypassword)               
         # todo for extended offline mqtt support is required
         if _args.upstreamprotocol != 'Ampq':
             initCmd = initCmd + " -UpstreamProtocol {0} ".format(_args.upstreamprotocol)               
@@ -793,7 +814,8 @@ if _args.targetplatform:
 elif _targetPlatform == 'windows':
         shutil.copyfile('{0}/Init-IotEdgeService.ps1'.format(_scriptDir), '{0}/Init-IotEdgeService.ps1'.format(_args.outdir))
         shutil.copyfile('{0}/Deinit-IotEdgeService.ps1'.format(_scriptDir), '{0}/Deinit-IotEdgeService.ps1'.format(_args.outdir))
-        shutil.copyfile('{0}/Prepare-IIotHost.ps1'.format(_scriptDir), '{0}/Prepare-IIotHost.ps1'.format(_args.outdir))
+        shutil.copyfile('{0}/Prepare-WindowsGatewayStep1.ps1'.format(_scriptDir), '{0}/Prepare-WindowsGatewayStep1.ps1'.format(_args.outdir))
+        shutil.copyfile('{0}/Prepare-WindowsGatewayStep2.ps1'.format(_scriptDir), '{0}/Prepare-WindowsGatewayStep2.ps1'.format(_args.outdir))
 
 # done
 logging.info('')

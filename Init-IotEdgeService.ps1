@@ -9,6 +9,10 @@
     The IoTHub device connection string of the IoT Edge device.
 .PARAMETER Proxy
     The proxy URL to be used by IoT Edge.
+.PARAMETER ProxyUsername
+    The username for the proxy.
+.PARAMETER ProxyPassword
+    The password for the proxy.
 .PARAMETER ArchivePath
     The archive path to be used by IoT Edge.
 .PARAMETER AgentImage
@@ -27,7 +31,11 @@ Param(
 [string] $ContainerOs = "Windows",
 [Parameter(Mandatory=$false, HelpMessage="Specify the proxy URL to use.")]
 [string] $Proxy = "",
-[Parameter(Mandatory=$false, HelpMessage="Specify the upstream protocol to use.")]
+[Parameter(Mandatory=$false, HelpMessage="Specifiy the username for the proxy.")]
+[string] $ProxyUsername = "",
+[Parameter(Mandatory=$false, HelpMessage="Specifiy the password for the proxy.")]
+[string] $ProxyPassword = "",
+[Parameter(Mandatory=$false, HelpMessage="Specify the updstream protocol to use.")]
 [string] $UpstreamProtocol = "",
 [Parameter(Mandatory=$false, HelpMessage="Specify the IoT Edge archive path")]
 [string] $ArchivePath = "",
@@ -81,7 +89,16 @@ if ($? -eq $false)
     Write-Output "****************************************************************"
     Write-Output "Download IoT Edge"
     Write-Output "****************************************************************"
-    . {Invoke-Expression "Invoke-WebRequest -useb aka.ms/iotedge-win $Proxy"} | Invoke-Expression
+    if (![string]::IsNullOrEmpty($Username) -and ![string]::IsNullOrEmpty($Password))
+    {
+        $SecurePwd = ConvertTo-SecureString $ProxyPassword -AsPlainText -Force
+        $ProxyCredential = New-Object System.Management.Automation.PSCredential ($ProxyUsername, $SecurePwd)    
+        . {Invoke-Expression "Invoke-WebRequest -useb aka.ms/iotedge-win -Proxy $Proxy -ProxyCredential $ProxyCredential"} | Invoke-Expression
+    }
+    else
+    {
+        . {Invoke-Expression "Invoke-WebRequest -useb aka.ms/iotedge-win -Proxy $Proxy"} | Invoke-Expression
+    }
 }
 
 # uninstall the security daemon
@@ -111,10 +128,6 @@ if (![string]::IsNullOrEmpty($ContainerOs))
 
 if (![string]::IsNullOrEmpty($Proxy))
 {
-    if (! "https" -like $Proxy)
-    {
-        throw('Only secure proxies are supported (URL starts with https://).')
-    }
     $script:ProxyUrl = $Proxy
     $Proxy = " -Proxy $Proxy "
 }
