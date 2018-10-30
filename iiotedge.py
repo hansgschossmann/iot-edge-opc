@@ -93,6 +93,10 @@ commonOptArgsParser.add_argument('--proxypassword', default=None,
     help="Password to use for proxy authentication.")
 commonOptArgsParser.add_argument('--upstreamprotocol', choices=['Amqp', 'AmpqWs'], default='Amqp',
     help="the upstream protocol IoT Edge should use for communication via proxy.")
+commonOptArgsParser.add_argument('--archivepath', default=None,
+    help="the path to an IoT Edge archive to use.")
+commonOptArgsParser.add_argument('--siteconfig', default="simple-site.yml",
+    help="the configuration of the site as docker-compose YAML file.")
 
 commonOptArgsParser.add_argument('-s', '--serviceprincipalcert',
     help=".pem containing a service principal cert to login to Azure.")
@@ -157,7 +161,7 @@ def createEdgeSiteConfiguration(siteName):
                 telemetryConfigOption = '--tc /d/tc-{0}.json'.format(siteName)
         except AttributeError:
             pass
-        with open('{0}/site.yml'.format(_scriptDir), 'r') as setupTemplate, open(ymlOutFileName, 'w+', newline=_targetNewline) as setupOutFile:
+        with open('{0}/{1}'.format(_scriptDir, _args.siteconfig), 'r') as setupTemplate, open(ymlOutFileName, 'w+', newline=_targetNewline) as setupOutFile:
             for line in setupTemplate:
                 line = line.replace('${OPCPUBLISHER_CONTAINER}', _opcPublisherContainer)
                 line = line.replace('${OPCPROXY_CONTAINER}', _opcProxyContainer)
@@ -207,7 +211,7 @@ def createEdgeSiteConfiguration(siteName):
                 for port in serviceConfig['ports']:
                     hostPorts = []
                     if '-' in port or '/' in port:
-                        logging.fatal("For ports (in file site.yml) only the single port short syntax without protocol (tcp is used) is supported (HOSTPORT:CONTAINERPORT)")
+                        logging.fatal("For ports in the .yml configuration only the single port short syntax without protocol (tcp is used) is supported (HOSTPORT:CONTAINERPORT)")
                         sys.exit(1)
                     if ':' in port:
                         delim = port.find(':')
@@ -286,7 +290,8 @@ def createEdgeSiteConfiguration(siteName):
             # set default properties for twin
             if twinService:
                 deploymentContent['content']['modulesContent']['twin-{0}'.format(siteName)] = { 'properties.desired': {} }
-                deploymentContent['content']['modulesContent']['twin-{0}'.format(siteName)]['properties.desired'] = { 'Discovery': "Scan" }
+                # todo read more complex discovery settings
+                deploymentContent['content']['modulesContent']['twin-{0}'.format(siteName)]['properties.desired'] = { 'Discovery': "Off" }
             # todo add scanner configuration from file
             json.dump(deploymentContent, deploymentContentFile, indent=4)
         # todo enable when bool is supported for target condition
@@ -381,28 +386,29 @@ def createEdgeSiteConfiguration(siteName):
     # generate our setup script
     # todo add registry credential
     # todo use CA signed cert
-    initCmd = "docker volume create {0}_cfappdata".format(siteName)
+    initCmd = 'docker volume create {0}_cfappdata'.format(siteName)
     _initScript.append(initCmd + '\n')
-    initCmd = "docker pull {0}".format(_opcProxyContainer)
+    initCmd = 'docker pull {0}'.format(_opcProxyContainer)
     _initScript.append(initCmd + '\n')
-    initCmd = "docker-compose -p {0} -f {1} up".format(siteName, ymlFileName)
+    initCmd = 'docker-compose -p {0} -f {1} up'.format(siteName, ymlFileName)
     _initScript.append(_initScriptCmdPrefix + initCmd + _initScriptCmdPostfix + '\n')
-    initCmd = "docker-compose -p {0} -f {1} down".format(siteName, ymlFileName)
+    initCmd = 'docker-compose -p {0} -f {1} down'.format(siteName, ymlFileName)
     _initScript.append(_initScriptCmdPrefix + initCmd + _initScriptCmdPostfix + '\n')
     if _targetPlatform == 'windows':
         initCmd = '. ./Init-IotEdgeService.ps1 -DeviceConnectionString "{0}" -ContainerOs {1} '.format(edgeDeviceConnectionString, _containerOs)
         if _args.proxyhost:
+            initCmd = initCmd + ' -ProxySchema {0} -ProxyHost "{1}" '.format(_args.proxyschema, _args.proxyhost)
             if _args.proxyport:
-                initCmd = initCmd + ' -Proxy "{0}://{1}:{2}" '.format(_args.proxyschema, _args.proxyhost, _args.proxyport)
-            else:
-                initCmd = initCmd + ' -Proxy "{0}://{1}" '.format(_args.proxyschema, _args.proxyhost)
+                initCmd = initCmd + ' -ProxyPort {0} '.format(_args.proxyport)
             if _args.proxyusername:
-                initCmd = initCmd + " -ProxyUsername {0} ".format(_args.proxyusername)               
+                initCmd = initCmd + ' -ProxyUsername {0} '.format(_args.proxyusername)               
             if _args.proxypassword:
-                initCmd = initCmd + " -ProxyPassword {0} ".format(_args.proxypassword)               
+                initCmd = initCmd + ' -ProxyPassword {0} '.format(_args.proxypassword)               
         # todo for extended offline mqtt support is required
         if _args.upstreamprotocol != 'Ampq':
-            initCmd = initCmd + " -UpstreamProtocol {0} ".format(_args.upstreamprotocol)               
+            initCmd = initCmd + ' -UpstreamProtocol {0} '.format(_args.upstreamprotocol)               
+        if _args.archivepath:
+            initCmd = initCmd + ' -ArchivePath "{0}" '.format(_args.archivepath)               
         _initScript.append(_initScriptCmdPrefix + initCmd + _initScriptCmdPostfix + '\n')
         deinitCmd = ". ./Deinit-IotEdgeService.ps1"
         _deinitScript.append(_deinitScriptCmdPrefix + deinitCmd + _deinitScriptCmdPostfix + '\n')
@@ -411,7 +417,7 @@ def createEdgeSiteConfiguration(siteName):
         initCmd = 'iotedgectl setup --connection-string "{0}" --auto-cert-gen-force-no-passwords {1}'.format(edgeDeviceConnectionString, '--runtime-log-level debug' if (_args.loglevel.lower() == 'debug') else '')
         _initScript.append(_initScriptCmdPrefix + initCmd + _initScriptCmdPostfix + '\n')
     # deinit commands are written in reversed order
-    deinitCmd = "docker volume rm {0}_cfappdata".format(siteName)
+    deinitCmd = 'docker volume rm {0}_cfappdata'.format(siteName)
     _deinitScript.append(_deinitScriptCmdPrefix + deinitCmd + _deinitScriptCmdPostfix + '\n')
 
 def getLocalIpAddress():
@@ -729,6 +735,20 @@ if _args.subcommand == 'gw':
         pass
     _args.site = _args.site.lower() 
     _edgeSite = _args.site
+
+    # IoT Edge archive
+    if _args.archivepath is not None:
+        _args.archivepath = _args.archivepath.strip()
+        if not os.path.exists(_args.archivepath):
+            logging.critical("The given archive '{0} does not exist. Please check. Exiting...".format(_args.archivepath))
+            sys.exit(2)
+
+    # site configuration
+    if _args.siteconfig is not None:
+        _args.siteconfig = _args.siteconfig.strip()
+        if not os.path.exists(_args.siteconfig):
+            logging.critical("The given site config file '{0} does not exist. Please check. Exiting...".format(_args.siteconfig))
+            sys.exit(2)
 
 # build the list of hostname/IP address mapping to allow the containers to access the local and external hosts, in case there is no DNS (espacially on Windows)
 # add localhost info if we run on the targetplatform

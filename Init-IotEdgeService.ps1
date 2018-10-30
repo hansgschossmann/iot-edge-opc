@@ -29,8 +29,12 @@ Param(
 [string] $DeviceConnectionString,
 [Parameter(Mandatory=$false, HelpMessage="Specify the OS used in the module containers")]
 [string] $ContainerOs = "Windows",
+[Parameter(Mandatory=$false, HelpMessage="Specify the schema of the proxy to use.")]
+[string] $ProxySchema = "http",
 [Parameter(Mandatory=$false, HelpMessage="Specify the proxy URL to use.")]
-[string] $Proxy = "",
+[string] $ProxyHost = "",
+[Parameter(Mandatory=$false, HelpMessage="Specify the port of the proxy to use.")]
+[string] $ProxyPort = "",
 [Parameter(Mandatory=$false, HelpMessage="Specifiy the username for the proxy.")]
 [string] $ProxyUsername = "",
 [Parameter(Mandatory=$false, HelpMessage="Specifiy the password for the proxy.")]
@@ -89,11 +93,12 @@ if ($? -eq $false)
     Write-Output "****************************************************************"
     Write-Output "Download IoT Edge"
     Write-Output "****************************************************************"
-    if (![string]::IsNullOrEmpty($Username) -and ![string]::IsNullOrEmpty($Password))
+    if (![string]::IsNullOrEmpty($ProxyUsername) -and ![string]::IsNullOrEmpty($ProxyPassword))
     {
-        $SecurePwd = ConvertTo-SecureString $ProxyPassword -AsPlainText -Force
-        $ProxyCredential = New-Object System.Management.Automation.PSCredential ($ProxyUsername, $SecurePwd)    
-        . {Invoke-Expression "Invoke-WebRequest -useb aka.ms/iotedge-win -Proxy $Proxy -ProxyCredential $ProxyCredential"} | Invoke-Expression
+        $BasicAuth = "$($ProxyUsername):$($ProxyPassword)"
+        $BasicAuthBytes = [System.Text.Encoding]::ASCII.GetBytes($BasicAuth)
+        $BasicAuthBase64 = [System.Convert]::ToBase64String($BasicAuthBytes)
+        . { Invoke-Expression ("Invoke-WebRequest -useb aka.ms/iotedge-win -Proxy $Proxy -Headers @{ Authorization = '" + "$BasicAuthBase64" + "'}") } | Invoke-Expression
     }
     else
     {
@@ -126,10 +131,18 @@ if (![string]::IsNullOrEmpty($ContainerOs))
     $ContainerOs = " -ContainerOs $ContainerOs "
 }
 
-if (![string]::IsNullOrEmpty($Proxy))
+if (![string]::IsNullOrEmpty($ProxyHost))
 {
-    $script:ProxyUrl = $Proxy
-    $Proxy = " -Proxy $Proxy "
+    $script:ProxyUrl = ""
+    if (![string]::IsNullOrEmpty($ProxyUsername) -and ![string]::IsNullOrEmpty($ProxyPassword))
+    {
+        $script:ProxyUrl = $ProxySchema + "://" + $ProxyUsername + ":" + $ProxyPassword + "@" + $ProxyHost + ":" + $ProxyPort
+    }
+    else
+    {
+        $script:ProxyUrl = $ProxySchema + "://" + $ProxyHost + ":" + $ProxyPort
+    }
+    $Proxy = " -Proxy $ProxyUrl "
 }
 
 if (![string]::IsNullOrEmpty($ArchivePath))
