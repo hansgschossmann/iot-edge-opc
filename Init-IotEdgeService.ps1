@@ -98,11 +98,11 @@ if ($? -eq $false)
         $BasicAuth = "$($ProxyUsername):$($ProxyPassword)"
         $BasicAuthBytes = [System.Text.Encoding]::ASCII.GetBytes($BasicAuth)
         $BasicAuthBase64 = [System.Convert]::ToBase64String($BasicAuthBytes)
-        . { Invoke-Expression ("Invoke-WebRequest -useb aka.ms/iotedge-win -Proxy $Proxy -Headers @{ Authorization = '" + "$BasicAuthBase64" + "'}") } | Invoke-Expression
+        . { Invoke-Expression ("Invoke-WebRequest -useb aka.ms/iotedge-win -Proxy $ProxyHost -Headers @{ Authorization = '" + "$BasicAuthBase64" + "'}") } | Invoke-Expression
     }
     else
     {
-        . {Invoke-Expression "Invoke-WebRequest -useb aka.ms/iotedge-win -Proxy $Proxy"} | Invoke-Expression
+        . {Invoke-Expression "Invoke-WebRequest -useb aka.ms/iotedge-win -Proxy $ProxyHost"} | Invoke-Expression
     }
 }
 
