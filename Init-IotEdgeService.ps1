@@ -7,8 +7,12 @@
     The OS of the containers to run.
 .PARAMETER DeviceConnectionString
     The IoTHub device connection string of the IoT Edge device.
-.PARAMETER Proxy
-    The proxy URL to be used by IoT Edge.
+.PARAMETER ProxySchema
+    The schema of the proxy.
+.PARAMETER ProxyHost
+    The host of the proxy.
+.PARAMETER ProxyPort
+    The port of the proxy.
 .PARAMETER ProxyUsername
     The username for the proxy.
 .PARAMETER ProxyPassword
@@ -93,16 +97,28 @@ if ($? -eq $false)
     Write-Output "****************************************************************"
     Write-Output "Download IoT Edge"
     Write-Output "****************************************************************"
-    if (![string]::IsNullOrEmpty($ProxyUsername) -and ![string]::IsNullOrEmpty($ProxyPassword))
+    if (![string]::IsNullOrEmpty($ProxyHost))
     {
-        $BasicAuth = "$($ProxyUsername):$($ProxyPassword)"
-        $BasicAuthBytes = [System.Text.Encoding]::ASCII.GetBytes($BasicAuth)
-        $BasicAuthBase64 = [System.Convert]::ToBase64String($BasicAuthBytes)
-        . { Invoke-Expression ("Invoke-WebRequest -useb aka.ms/iotedge-win -Proxy $ProxyHost -Headers @{ Authorization = '" + "$BasicAuthBase64" + "'}") } | Invoke-Expression
+        $ProxyString = $ProxySchema + "://" + $ProxyHost
+        if (![string]::IsNullOrEmpty($ProxyPort))
+        {
+            $ProxyString += (":" + $ProxyPort)
+        }
+        if (![string]::IsNullOrEmpty($ProxyUsername) -and ![string]::IsNullOrEmpty($ProxyPassword))
+        {
+            $BasicAuth = "$($ProxyUsername):$($ProxyPassword)"
+            $BasicAuthBytes = [System.Text.Encoding]::ASCII.GetBytes($BasicAuth)
+            $BasicAuthBase64 = [System.Convert]::ToBase64String($BasicAuthBytes)
+            . { Invoke-Expression ("Invoke-WebRequest -useb aka.ms/iotedge-win -Proxy $ProxyString -Headers @{ Authorization = '" + "$BasicAuthBase64" + "'}") } | Invoke-Expression
+        }
+        else
+        {
+            . {Invoke-Expression "Invoke-WebRequest -useb aka.ms/iotedge-win -Proxy $ProxyString"} | Invoke-Expression
+        }
     }
     else
     {
-        . {Invoke-Expression "Invoke-WebRequest -useb aka.ms/iotedge-win -Proxy $ProxyHost"} | Invoke-Expression
+        . {Invoke-Expression "Invoke-WebRequest -useb aka.ms/iotedge-win"} | Invoke-Expression
     }
 }
 
